@@ -6,7 +6,7 @@
 // lookups, and monitoring.
 // It does not yet support key changes.
 
-package protocol
+package directory
 
 import (
 	"bytes"
@@ -14,6 +14,7 @@ import (
 	"github.com/coniks-sys/coniks-go/crypto/sign"
 	"github.com/coniks-sys/coniks-go/crypto/vrf"
 	"github.com/coniks-sys/coniks-go/merkletree"
+	p "github.com/coniks-sys/coniks-go/protocol"
 )
 
 // A ConiksDirectory maintains the underlying persistent
@@ -26,11 +27,11 @@ import (
 type ConiksDirectory struct {
 	pad      *merkletree.PAD
 	useTBs   bool
-	tbs      map[string]*TemporaryBinding
-	policies *Policies
+	tbs      map[string]*p.TemporaryBinding
+	policies *p.Policies
 }
 
-// NewDirectory constructs a new ConiksDirectory given the key server's PAD
+// New constructs a new ConiksDirectory given the key server's PAD
 // policies (i.e. epDeadline, vrfKey).
 //
 // signKey is the private key the key server uses to generate signed tree
@@ -38,7 +39,7 @@ type ConiksDirectory struct {
 // dirSize indicates the number of PAD snapshots the server keeps in memory.
 // useTBs indicates whether the key server returns TBs upon a successful
 // registration.
-func NewDirectory(epDeadline Timestamp, vrfKey vrf.PrivateKey,
+func New(epDeadline p.Timestamp, vrfKey vrf.PrivateKey,
 	signKey sign.PrivateKey, dirSize uint64, useTBs bool) *ConiksDirectory {
 	// FIXME: see #110
 	if !useTBs {
@@ -49,7 +50,7 @@ func NewDirectory(epDeadline Timestamp, vrfKey vrf.PrivateKey,
 	if !ok {
 		panic(vrf.ErrGetPubKey)
 	}
-	d.policies = NewPolicies(epDeadline, vrfPublicKey)
+	d.policies = p.NewPolicies(epDeadline, vrfPublicKey)
 	pad, err := merkletree.NewPAD(d.policies, signKey, vrfKey, dirSize)
 	if err != nil {
 		panic(err)
@@ -57,7 +58,7 @@ func NewDirectory(epDeadline Timestamp, vrfKey vrf.PrivateKey,
 	d.pad = pad
 	d.useTBs = useTBs
 	if useTBs {
-		d.tbs = make(map[string]*TemporaryBinding)
+		d.tbs = make(map[string]*p.TemporaryBinding)
 	}
 	return d
 }
@@ -76,27 +77,27 @@ func (d *ConiksDirectory) Update() {
 
 // SetPolicies sets this ConiksDirectory's epoch deadline, which will be used
 // in the next epoch.
-func (d *ConiksDirectory) SetPolicies(epDeadline Timestamp) {
-	d.policies = NewPolicies(epDeadline, d.policies.VrfPublicKey)
+func (d *ConiksDirectory) SetPolicies(epDeadline p.Timestamp) {
+	d.policies = p.NewPolicies(epDeadline, d.policies.VrfPublicKey)
 }
 
 // EpochDeadline returns this ConiksDirectory's latest epoch deadline
 // as a timestamp.
-func (d *ConiksDirectory) EpochDeadline() Timestamp {
-	return GetPolicies(d.pad.LatestSTR()).EpochDeadline
+func (d *ConiksDirectory) EpochDeadline() p.Timestamp {
+	return p.GetPolicies(d.pad.LatestSTR()).EpochDeadline
 }
 
 // LatestSTR returns this ConiksDirectory's latest STR.
-func (d *ConiksDirectory) LatestSTR() *DirSTR {
-	return NewDirSTR(d.pad.LatestSTR())
+func (d *ConiksDirectory) LatestSTR() *p.DirSTR {
+	return p.NewDirSTR(d.pad.LatestSTR())
 }
 
 // NewTB creates a new temporary binding for the given name-to-key mapping.
 // NewTB() computes the private index for the name, and
 // digitally signs the (index, key, latest STR signature) tuple.
-func (d *ConiksDirectory) NewTB(name string, key []byte) *TemporaryBinding {
+func (d *ConiksDirectory) NewTB(name string, key []byte) *p.TemporaryBinding {
 	index := d.pad.Index(name)
-	return &TemporaryBinding{
+	return &p.TemporaryBinding{
 		Index:     index,
 		Value:     key,
 		Signature: d.pad.Sign(d.LatestSTR().Signature, index, key),
@@ -127,43 +128,43 @@ func (d *ConiksDirectory) NewTB(name string, key []byte) *TemporaryBinding {
 // In any case, str is the signed tree root for the latest epoch.
 // If Register() encounters an internal error at any point, it returns
 // a message.NewErrorResponse(ErrDirectory) tuple.
-func (d *ConiksDirectory) Register(req *RegistrationRequest) (
-	*Response, ErrorCode) {
+func (d *ConiksDirectory) Register(req *p.RegistrationRequest) (
+	*p.Response, p.ErrorCode) {
 	// make sure the request is well-formed
 	if len(req.Username) <= 0 || len(req.Key) <= 0 {
-		return NewErrorResponse(ErrMalformedClientMessage),
-			ErrMalformedClientMessage
+		return p.NewErrorResponse(p.ErrMalformedClientMessage),
+			p.ErrMalformedClientMessage
 	}
 
 	// check whether the name already exists
 	// in the directory before we register
 	ap, err := d.pad.Lookup(req.Username)
 	if err != nil {
-		return NewErrorResponse(ErrDirectory), ErrDirectory
+		return p.NewErrorResponse(p.ErrDirectory), p.ErrDirectory
 	}
 	if bytes.Equal(ap.LookupIndex, ap.Leaf.Index) {
-		return NewRegistrationProof(ap, d.LatestSTR(), nil, ReqNameExisted)
+		return p.NewRegistrationProof(ap, d.LatestSTR(), nil, p.ReqNameExisted)
 	}
 
-	var tb *TemporaryBinding
+	var tb *p.TemporaryBinding
 
 	if d.useTBs {
 		// also check the temporary bindings array
 		// currently the server allows only one registration/key change per epoch
 		if tb = d.tbs[req.Username]; tb != nil {
-			return NewRegistrationProof(ap, d.LatestSTR(), tb, ReqNameExisted)
+			return p.NewRegistrationProof(ap, d.LatestSTR(), tb, p.ReqNameExisted)
 		}
 		tb = d.NewTB(req.Username, req.Key)
 	}
 
 	if err = d.pad.Set(req.Username, req.Key); err != nil {
-		return NewErrorResponse(ErrDirectory), ErrDirectory
+		return p.NewErrorResponse(p.ErrDirectory), p.ErrDirectory
 	}
 
 	if tb != nil {
 		d.tbs[req.Username] = tb
 	}
-	return NewRegistrationProof(ap, d.LatestSTR(), tb, ReqSuccess)
+	return p.NewRegistrationProof(ap, d.LatestSTR(), tb, p.ReqSuccess)
 }
 
 // KeyLookup gets the public key for the username indicated in the
@@ -189,30 +190,30 @@ func (d *ConiksDirectory) Register(req *RegistrationRequest) (
 // In any case, str is the signed tree root for the latest epoch.
 // If KeyLookup() encounters an internal error at any point, it returns
 // a message.NewErrorResponse(ErrDirectory) tuple.
-func (d *ConiksDirectory) KeyLookup(req *KeyLookupRequest) (
-	*Response, ErrorCode) {
+func (d *ConiksDirectory) KeyLookup(req *p.KeyLookupRequest) (
+	*p.Response, p.ErrorCode) {
 
 	// make sure the request is well-formed
 	if len(req.Username) <= 0 {
-		return NewErrorResponse(ErrMalformedClientMessage),
-			ErrMalformedClientMessage
+		return p.NewErrorResponse(p.ErrMalformedClientMessage),
+			p.ErrMalformedClientMessage
 	}
 
 	ap, err := d.pad.Lookup(req.Username)
 	if err != nil {
-		return NewErrorResponse(ErrDirectory), ErrDirectory
+		return p.NewErrorResponse(p.ErrDirectory), p.ErrDirectory
 	}
 
 	if bytes.Equal(ap.LookupIndex, ap.Leaf.Index) {
-		return NewKeyLookupProof(ap, d.LatestSTR(), nil, ReqSuccess)
+		return p.NewKeyLookupProof(ap, d.LatestSTR(), nil, p.ReqSuccess)
 	}
 	// if not found in the tree, do lookup in tb array
 	if d.useTBs {
 		if tb := d.tbs[req.Username]; tb != nil {
-			return NewKeyLookupProof(ap, d.LatestSTR(), tb, ReqSuccess)
+			return p.NewKeyLookupProof(ap, d.LatestSTR(), tb, p.ReqSuccess)
 		}
 	}
-	return NewKeyLookupProof(ap, d.LatestSTR(), nil, ReqNameNotFound)
+	return p.NewKeyLookupProof(ap, d.LatestSTR(), nil, p.ReqNameNotFound)
 }
 
 // KeyLookupInEpoch gets the public key for the username for a prior
@@ -242,33 +243,33 @@ func (d *ConiksDirectory) KeyLookup(req *KeyLookupRequest) (
 // the binding is included in a directory snapshot.
 // If KeyLookupInEpoch() encounters an internal error at any point,
 // it returns a message.NewErrorResponse(ErrDirectory) tuple.
-func (d *ConiksDirectory) KeyLookupInEpoch(req *KeyLookupInEpochRequest) (
-	*Response, ErrorCode) {
+func (d *ConiksDirectory) KeyLookupInEpoch(req *p.KeyLookupInEpochRequest) (
+	*p.Response, p.ErrorCode) {
 
 	// make sure the request is well-formed
 	if len(req.Username) <= 0 ||
 		req.Epoch > d.LatestSTR().Epoch {
-		return NewErrorResponse(ErrMalformedClientMessage),
-			ErrMalformedClientMessage
+		return p.NewErrorResponse(p.ErrMalformedClientMessage),
+			p.ErrMalformedClientMessage
 	}
 
-	var strs []*DirSTR
+	var strs []*p.DirSTR
 	startEp := req.Epoch
 	endEp := d.LatestSTR().Epoch
 
 	ap, err := d.pad.LookupInEpoch(req.Username, startEp)
 	if err != nil {
-		return NewErrorResponse(ErrDirectory), ErrDirectory
+		return p.NewErrorResponse(p.ErrDirectory), p.ErrDirectory
 	}
 	for ep := startEp; ep <= endEp; ep++ {
-		str := NewDirSTR(d.pad.GetSTR(ep))
+		str := p.NewDirSTR(d.pad.GetSTR(ep))
 		strs = append(strs, str)
 	}
 
 	if bytes.Equal(ap.LookupIndex, ap.Leaf.Index) {
-		return NewKeyLookupInEpochProof(ap, strs, ReqSuccess)
+		return p.NewKeyLookupInEpochProof(ap, strs, p.ReqSuccess)
 	}
-	return NewKeyLookupInEpochProof(ap, strs, ReqNameNotFound)
+	return p.NewKeyLookupInEpochProof(ap, strs, p.ReqNameNotFound)
 }
 
 // Monitor gets the directory proofs for the username for the range of
@@ -291,18 +292,18 @@ func (d *ConiksDirectory) KeyLookupInEpoch(req *KeyLookupInEpochRequest) (
 // the end of the range will be set to d.LatestSTR().Epoch.
 // If Monitor() encounters an internal error at any point,
 // it returns a message.NewErrorResponse(ErrDirectory) tuple.
-func (d *ConiksDirectory) Monitor(req *MonitoringRequest) (
-	*Response, ErrorCode) {
+func (d *ConiksDirectory) Monitor(req *p.MonitoringRequest) (
+	*p.Response, p.ErrorCode) {
 
 	// make sure the request is well-formed
 	if len(req.Username) <= 0 ||
 		req.StartEpoch > d.LatestSTR().Epoch ||
 		req.StartEpoch > req.EndEpoch {
-		return NewErrorResponse(ErrMalformedClientMessage),
-			ErrMalformedClientMessage
+		return p.NewErrorResponse(p.ErrMalformedClientMessage),
+			p.ErrMalformedClientMessage
 	}
 
-	var strs []*DirSTR
+	var strs []*p.DirSTR
 	var aps []*merkletree.AuthenticationPath
 	startEp := req.StartEpoch
 	endEp := req.EndEpoch
@@ -312,14 +313,14 @@ func (d *ConiksDirectory) Monitor(req *MonitoringRequest) (
 	for ep := startEp; ep <= endEp; ep++ {
 		ap, err := d.pad.LookupInEpoch(req.Username, ep)
 		if err != nil {
-			return NewErrorResponse(ErrDirectory), ErrDirectory
+			return p.NewErrorResponse(p.ErrDirectory), p.ErrDirectory
 		}
 		aps = append(aps, ap)
-		str := NewDirSTR(d.pad.GetSTR(ep))
+		str := p.NewDirSTR(d.pad.GetSTR(ep))
 		strs = append(strs, str)
 	}
 
-	return NewMonitoringProof(aps, strs)
+	return p.NewMonitoringProof(aps, strs)
 }
 
 // GetSTRHistory gets the directory snapshots for the epoch range

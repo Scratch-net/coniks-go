@@ -2,32 +2,31 @@
 // functionality that clients and auditors need to verify
 // a server's STR history.
 
-package protocol
+package auditor
 
 import (
-	"fmt"
 	"reflect"
 
-	"github.com/coniks-sys/coniks-go/crypto"
 	"github.com/coniks-sys/coniks-go/crypto/sign"
+	p "github.com/coniks-sys/coniks-go/protocol"
 )
 
 // Auditor provides a generic interface allowing different
 // auditor types to implement specific auditing functionality.
 type Auditor interface {
-	AuditDirectory([]*DirSTR) error
+	AuditDirectory([]*p.DirSTR) error
 }
 
 // AudState verifies the hash chain of a specific directory.
 type AudState struct {
 	signKey     sign.PublicKey
-	verifiedSTR *DirSTR
+	verifiedSTR *p.DirSTR
 }
 
 var _ Auditor = (*AudState)(nil)
 
-// NewAuditor instantiates a new auditor state from a persistance storage.
-func NewAuditor(signKey sign.PublicKey, verified *DirSTR) *AudState {
+// New instantiates a new auditor state from a persistance storage.
+func New(signKey sign.PublicKey, verified *p.DirSTR) *AudState {
 	a := &AudState{
 		signKey:     signKey,
 		verifiedSTR: verified,
@@ -35,24 +34,29 @@ func NewAuditor(signKey sign.PublicKey, verified *DirSTR) *AudState {
 	return a
 }
 
+// Verify verifies a signature sig on message using the underlying
+// public-key of the AudState.
+func (a *AudState) Verify(message, sig []byte) bool {
+	return a.signKey.Verify(message, sig)
+}
+
 // VerifiedSTR returns the newly verified STR.
-func (a *AudState) VerifiedSTR() *DirSTR {
+func (a *AudState) VerifiedSTR() *p.DirSTR {
 	return a.verifiedSTR
 }
 
 // Update updates the auditor's verifiedSTR to newSTR
-func (a *AudState) Update(newSTR *DirSTR) {
+func (a *AudState) Update(newSTR *p.DirSTR) {
 	a.verifiedSTR = newSTR
 }
 
 // compareWithVerified checks whether the received STR is the same as
 // the verified STR in the AudState using reflect.DeepEqual().
-func (a *AudState) compareWithVerified(str *DirSTR) error {
+func (a *AudState) compareWithVerified(str *p.DirSTR) error {
 	if reflect.DeepEqual(a.verifiedSTR, str) {
 		return nil
 	}
-
-	return CheckBadSTR
+	return p.CheckBadSTR
 }
 
 // verifySTRConsistency checks the consistency between 2 snapshots.
@@ -60,29 +64,29 @@ func (a *AudState) compareWithVerified(str *DirSTR) error {
 // The signKey param either comes from a client's
 // pinned signing key in its consistency state,
 // or an auditor's pinned signing key in its history.
-func (a *AudState) verifySTRConsistency(prevSTR, str *DirSTR) error {
+func (a *AudState) verifySTRConsistency(prevSTR, str *p.DirSTR) error {
 	// verify STR's signature
 	if !a.signKey.Verify(str.Serialize(), str.Signature) {
-		return CheckBadSignature
+		return p.CheckBadSignature
 	}
 	if str.VerifyHashChain(prevSTR) {
 		return nil
 	}
 
 	// TODO: verify the directory's policies as well. See #115
-	return CheckBadSTR
+	return p.CheckBadSTR
 }
 
-// checkSTRAgainstVerified checks an STR str against the a.verifiedSTR.
-// If str's Epoch is the same as the verified, checkSTRAgainstVerified()
+// CheckSTRAgainstVerified checks an STR str against the a.verifiedSTR.
+// If str's Epoch is the same as the verified, CheckSTRAgainstVerified()
 // compares the two STRs directly. If str is one epoch ahead of the
-// a.verifiedSTR, checkSTRAgainstVerified() checks the consistency between
+// a.verifiedSTR, CheckSTRAgainstVerified() checks the consistency between
 // the two STRs.
-// checkSTRAgainstVerified() returns nil if the check passes,
+// CheckSTRAgainstVerified() returns nil if the check passes,
 // or the appropriate consistency check error if any of the checks fail,
 // or str's epoch is anything other than the same or one ahead of
 // a.verifiedSTR.
-func (a *AudState) checkSTRAgainstVerified(str *DirSTR) error {
+func (a *AudState) CheckSTRAgainstVerified(str *p.DirSTR) error {
 	// FIXME: check whether the STR was issued on time and whatnot.
 	// Maybe it has something to do w/ #81 and client
 	// transitioning between epochs.
@@ -103,24 +107,24 @@ func (a *AudState) checkSTRAgainstVerified(str *DirSTR) error {
 			return err
 		}
 	default:
-		return CheckBadSTR
+		return p.CheckBadSTR
 	}
 
-	return CheckPassed
+	return nil
 }
 
-// verifySTRRange checks the consistency of a range
+// VerifySTRRange checks the consistency of a range
 // of a directory's STRs. It begins by verifying the STR consistency between
 // the given prevSTR and the first STR in the given range, and
 // then verifies the consistency between each subsequent STR pair.
-func (a *AudState) verifySTRRange(prevSTR *DirSTR, strs []*DirSTR) error {
+func (a *AudState) VerifySTRRange(prevSTR *p.DirSTR, strs []*p.DirSTR) error {
 	prev := prevSTR
 	for i := 0; i < len(strs); i++ {
 		str := strs[i]
 		if str == nil {
 			// FIXME: if this comes from the auditor, this
 			// should really be an ErrMalformedAuditorMessage
-			return ErrMalformedDirectoryMessage
+			return p.ErrMalformedDirectoryMessage
 		}
 
 		// verify the consistency of each STR in the range
@@ -140,36 +144,23 @@ func (a *AudState) verifySTRRange(prevSTR *DirSTR, strs []*DirSTR) error {
 // range if the message contains more than one STR.
 // AuditDirectory() returns the appropriate consistency check error
 // if any of the checks fail, or nil if the checks pass.
-func (a *AudState) AuditDirectory(strs []*DirSTR) error {
+func (a *AudState) AuditDirectory(strs []*p.DirSTR) error {
 	// validate strs
 	if len(strs) == 0 {
-		return ErrMalformedDirectoryMessage
+		return p.ErrMalformedDirectoryMessage
 	}
 
 	// check STR against the latest verified STR
-	if err := a.checkSTRAgainstVerified(strs[0]); err != CheckPassed {
+	if err := a.CheckSTRAgainstVerified(strs[0]); err != nil {
 		return err
 	}
 
 	// verify the entire range if we have received more than one STR
 	if len(strs) > 1 {
-		if err := a.verifySTRRange(strs[0], strs[1:]); err != nil {
+		if err := a.VerifySTRRange(strs[0], strs[1:]); err != nil {
 			return err
 		}
 	}
 
-	return CheckPassed
-}
-
-// ComputeDirectoryIdentity returns the hash of
-// the directory's initial STR as a byte array.
-// It panics if the STR isn't an initial STR (i.e. str.Epoch != 0).
-func ComputeDirectoryIdentity(str *DirSTR) [crypto.HashSizeByte]byte {
-	if str.Epoch != 0 {
-		panic(fmt.Sprintf("[coniks] Expect epoch 0, got %x", str.Epoch))
-	}
-
-	var initSTRHash [crypto.HashSizeByte]byte
-	copy(initSTRHash[:], crypto.Digest(str.Signature))
-	return initSTRHash
+	return p.CheckPassed
 }

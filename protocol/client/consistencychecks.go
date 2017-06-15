@@ -2,15 +2,16 @@
 // on data received from a CONIKS directory.
 // These include data binding proof verification,
 // and non-equivocation checks.
-// TODO: move all STR-verifying functionality to a separate module
 
-package protocol
+package client
 
 import (
 	"bytes"
 
 	"github.com/coniks-sys/coniks-go/crypto/sign"
 	m "github.com/coniks-sys/coniks-go/merkletree"
+	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol/auditor"
 )
 
 // ConsistencyChecks stores the latest consistency check
@@ -27,23 +28,23 @@ import (
 type ConsistencyChecks struct {
 	// the auditor state stores the latest verified signed tree root
 	// as well as the server's signing key
-	*AudState
+	*auditor.AudState
 	Bindings map[string][]byte
 
 	// extensions settings
 	useTBs bool
-	TBs    map[string]*TemporaryBinding
+	TBs    map[string]*p.TemporaryBinding
 }
 
-// NewCC creates an instance of ConsistencyChecks using
+// New creates an instance of ConsistencyChecks using
 // a CONIKS directory's pinned STR at epoch 0, or
 // the consistency state read from persistent storage.
-func NewCC(savedSTR *DirSTR, useTBs bool, signKey sign.PublicKey) *ConsistencyChecks {
+func New(savedSTR *p.DirSTR, useTBs bool, signKey sign.PublicKey) *ConsistencyChecks {
 	// TODO: see #110
 	if !useTBs {
 		panic("[coniks] Currently the server is forced to use TBs")
 	}
-	a := NewAuditor(signKey, savedSTR)
+	a := auditor.New(signKey, savedSTR)
 	cc := &ConsistencyChecks{
 		AudState: a,
 		Bindings: make(map[string][]byte),
@@ -51,7 +52,7 @@ func NewCC(savedSTR *DirSTR, useTBs bool, signKey sign.PublicKey) *ConsistencyCh
 		TBs:      nil,
 	}
 	if useTBs {
-		cc.TBs = make(map[string]*TemporaryBinding)
+		cc.TBs = make(map[string]*p.TemporaryBinding)
 	}
 	return cc
 }
@@ -64,17 +65,17 @@ func NewCC(savedSTR *DirSTR, useTBs bool, signKey sign.PublicKey) *ConsistencyCh
 // the cc.verifiedSTR.
 // CheckEquivocation() is called when a client receives a response to a
 // message.AuditingRequest from an auditor.
-func (cc *ConsistencyChecks) CheckEquivocation(msg *Response) error {
-	if err := msg.validate(); err != nil {
-		return err.(ErrorCode)
+func (cc *ConsistencyChecks) CheckEquivocation(msg *p.Response) error {
+	if err := msg.Validate(); err != nil {
+		return err
 	}
 
-	strs := msg.DirectoryResponse.(*STRHistoryRange)
+	strs := msg.DirectoryResponse.(*p.STRHistoryRange)
 
 	// verify the hashchain of the received STRs
 	// if we get more than 1 in our range
 	if len(strs.STR) > 1 {
-		if err := cc.verifySTRRange(strs.STR[0], strs.STR[1:]); err != nil {
+		if err := cc.VerifySTRRange(strs.STR[0], strs.STR[1:]); err != nil {
 			return err
 		}
 	}
@@ -82,7 +83,7 @@ func (cc *ConsistencyChecks) CheckEquivocation(msg *Response) error {
 	// TODO: if the auditor has returned a more recent STR,
 	// should the client update its savedSTR? Should this
 	// force a new round of monitoring?
-	return cc.checkSTRAgainstVerified(strs.STR[len(strs.STR)-1])
+	return cc.CheckSTRAgainstVerified(strs.STR[len(strs.STR)-1])
 }
 
 // HandleResponse verifies the directory's response for a request.
@@ -98,42 +99,42 @@ func (cc *ConsistencyChecks) CheckEquivocation(msg *Response) error {
 // Note that the consistency state will be updated regardless of
 // whether the checks pass / fail, since a response message contains
 // cryptographic proof of having been issued nonetheless.
-func (cc *ConsistencyChecks) HandleResponse(requestType int, msg *Response,
-	uname string, key []byte) ErrorCode {
-	if err := msg.validate(); err != nil {
-		return err.(ErrorCode)
+func (cc *ConsistencyChecks) HandleResponse(requestType int, msg *p.Response,
+	uname string, key []byte) p.ErrorCode {
+	if err := msg.Validate(); err != nil {
+		return err.(p.ErrorCode)
 	}
 	switch requestType {
-	case RegistrationType, KeyLookupType, KeyLookupInEpochType, MonitoringType:
-		if _, ok := msg.DirectoryResponse.(*DirectoryProof); !ok {
-			return ErrMalformedDirectoryMessage
+	case p.RegistrationType, p.KeyLookupType, p.KeyLookupInEpochType, p.MonitoringType:
+		if _, ok := msg.DirectoryResponse.(*p.DirectoryProof); !ok {
+			return p.ErrMalformedDirectoryMessage
 		}
 	default:
 		panic("[coniks] Unknown request type")
 	}
 	if err := cc.updateSTR(requestType, msg); err != nil {
-		return err.(ErrorCode)
+		return err.(p.ErrorCode)
 	}
-	if err := cc.checkConsistency(requestType, msg, uname, key); err != CheckPassed {
+	if err := cc.checkConsistency(requestType, msg, uname, key); err != p.CheckPassed {
 		return err
 	}
 	if err := cc.updateTBs(requestType, msg, uname, key); err != nil {
-		return err.(ErrorCode)
+		return err.(p.ErrorCode)
 	}
 	recvKey, _ := msg.GetKey()
 	cc.Bindings[uname] = recvKey
-	return CheckPassed
+	return p.CheckPassed
 }
 
-func (cc *ConsistencyChecks) updateSTR(requestType int, msg *Response) error {
-	var str *DirSTR
+func (cc *ConsistencyChecks) updateSTR(requestType int, msg *p.Response) error {
+	var str *p.DirSTR
 	switch requestType {
-	case RegistrationType, KeyLookupType:
-		str = msg.DirectoryResponse.(*DirectoryProof).STR[0]
+	case p.RegistrationType, p.KeyLookupType:
+		str = msg.DirectoryResponse.(*p.DirectoryProof).STR[0]
 		// The initial STR is pinned in the client
 		// so cc.verifiedSTR should never be nil
 		// FIXME: use STR slice from Response msg
-		if err := cc.AuditDirectory([]*DirSTR{str}); err != CheckPassed {
+		if err := cc.AuditDirectory([]*p.DirSTR{str}); err != nil {
 			return err
 		}
 
@@ -147,23 +148,23 @@ func (cc *ConsistencyChecks) updateSTR(requestType int, msg *Response) error {
 	return nil
 }
 
-func (cc *ConsistencyChecks) checkConsistency(requestType int, msg *Response,
-	uname string, key []byte) ErrorCode {
+func (cc *ConsistencyChecks) checkConsistency(requestType int, msg *p.Response,
+	uname string, key []byte) p.ErrorCode {
 	var err error
 	switch requestType {
-	case RegistrationType:
+	case p.RegistrationType:
 		err = cc.verifyRegistration(msg, uname, key)
-	case KeyLookupType:
+	case p.KeyLookupType:
 		err = cc.verifyKeyLookup(msg, uname, key)
 	default:
 		panic("[coniks] Unknown request type")
 	}
-	return err.(ErrorCode)
+	return err.(p.ErrorCode)
 }
 
-func (cc *ConsistencyChecks) verifyRegistration(msg *Response,
+func (cc *ConsistencyChecks) verifyRegistration(msg *p.Response,
 	uname string, key []byte) error {
-	df := msg.DirectoryResponse.(*DirectoryProof)
+	df := msg.DirectoryResponse.(*p.DirectoryProof)
 	// FIXME: should explicitly validate that
 	// len(df.AP) == len(df.STR) == 1
 	ap := df.AP[0]
@@ -171,23 +172,23 @@ func (cc *ConsistencyChecks) verifyRegistration(msg *Response,
 
 	proofType := ap.ProofType()
 	switch {
-	case msg.Error == ReqNameExisted && proofType == m.ProofOfInclusion:
-	case msg.Error == ReqNameExisted && proofType == m.ProofOfAbsence && cc.useTBs:
-	case msg.Error == ReqSuccess && proofType == m.ProofOfAbsence:
+	case msg.Error == p.ReqNameExisted && proofType == m.ProofOfInclusion:
+	case msg.Error == p.ReqNameExisted && proofType == m.ProofOfAbsence && cc.useTBs:
+	case msg.Error == p.ReqSuccess && proofType == m.ProofOfAbsence:
 	default:
-		return ErrMalformedDirectoryMessage
+		return p.ErrMalformedDirectoryMessage
 	}
 
 	if err := verifyAuthPath(uname, key, ap, str); err != nil {
 		return err
 	}
 
-	return CheckPassed
+	return p.CheckPassed
 }
 
-func (cc *ConsistencyChecks) verifyKeyLookup(msg *Response,
+func (cc *ConsistencyChecks) verifyKeyLookup(msg *p.Response,
 	uname string, key []byte) error {
-	df := msg.DirectoryResponse.(*DirectoryProof)
+	df := msg.DirectoryResponse.(*p.DirectoryProof)
 	// FIXME: should explicitly validate that
 	// len(df.AP) == len(df.STR) == 1
 	ap := df.AP[0]
@@ -195,26 +196,26 @@ func (cc *ConsistencyChecks) verifyKeyLookup(msg *Response,
 
 	proofType := ap.ProofType()
 	switch {
-	case msg.Error == ReqNameNotFound && proofType == m.ProofOfAbsence:
+	case msg.Error == p.ReqNameNotFound && proofType == m.ProofOfAbsence:
 	// FIXME: This would be changed when we support key changes
-	case msg.Error == ReqSuccess && proofType == m.ProofOfInclusion:
-	case msg.Error == ReqSuccess && proofType == m.ProofOfAbsence && cc.useTBs:
+	case msg.Error == p.ReqSuccess && proofType == m.ProofOfInclusion:
+	case msg.Error == p.ReqSuccess && proofType == m.ProofOfAbsence && cc.useTBs:
 	default:
-		return ErrMalformedDirectoryMessage
+		return p.ErrMalformedDirectoryMessage
 	}
 
 	if err := verifyAuthPath(uname, key, ap, str); err != nil {
 		return err
 	}
 
-	return CheckPassed
+	return p.CheckPassed
 }
 
-func verifyAuthPath(uname string, key []byte, ap *m.AuthenticationPath, str *DirSTR) error {
+func verifyAuthPath(uname string, key []byte, ap *m.AuthenticationPath, str *p.DirSTR) error {
 	// verify VRF Index
 	vrfKey := str.Policies.VrfPublicKey
 	if !vrfKey.Verify([]byte(uname), ap.LookupIndex, ap.VrfProof) {
-		return CheckBadVRFProof
+		return p.CheckBadVRFProof
 	}
 
 	if key == nil {
@@ -225,13 +226,13 @@ func verifyAuthPath(uname string, key []byte, ap *m.AuthenticationPath, str *Dir
 
 	switch err := ap.Verify([]byte(uname), key, str.TreeHash); err {
 	case m.ErrBindingsDiffer:
-		return CheckBindingsDiffer
+		return p.CheckBindingsDiffer
 	case m.ErrUnverifiableCommitment:
-		return CheckBadCommitment
+		return p.CheckBadCommitment
 	case m.ErrIndicesMismatch:
-		return CheckBadLookupIndex
+		return p.CheckBadLookupIndex
 	case m.ErrUnequalTreeHashes:
-		return CheckBadAuthPath
+		return p.CheckBadAuthPath
 	case nil:
 		return nil
 	default:
@@ -239,14 +240,14 @@ func verifyAuthPath(uname string, key []byte, ap *m.AuthenticationPath, str *Dir
 	}
 }
 
-func (cc *ConsistencyChecks) updateTBs(requestType int, msg *Response,
+func (cc *ConsistencyChecks) updateTBs(requestType int, msg *p.Response,
 	uname string, key []byte) error {
 	if !cc.useTBs {
 		return nil
 	}
 	switch requestType {
-	case RegistrationType:
-		df := msg.DirectoryResponse.(*DirectoryProof)
+	case p.RegistrationType:
+		df := msg.DirectoryResponse.(*p.DirectoryProof)
 		if df.AP[0].ProofType() == m.ProofOfAbsence {
 			if err := cc.verifyReturnedPromise(df, key); err != nil {
 				return err
@@ -255,19 +256,19 @@ func (cc *ConsistencyChecks) updateTBs(requestType int, msg *Response,
 		}
 		return nil
 
-	case KeyLookupType:
-		df := msg.DirectoryResponse.(*DirectoryProof)
+	case p.KeyLookupType:
+		df := msg.DirectoryResponse.(*p.DirectoryProof)
 		ap := df.AP[0]
 		str := df.STR[0]
 		proofType := ap.ProofType()
 		switch {
-		case msg.Error == ReqSuccess && proofType == m.ProofOfInclusion:
+		case msg.Error == p.ReqSuccess && proofType == m.ProofOfInclusion:
 			if err := cc.verifyFulfilledPromise(uname, str, ap); err != nil {
 				return err
 			}
 			delete(cc.TBs, uname)
 
-		case msg.Error == ReqSuccess && proofType == m.ProofOfAbsence:
+		case msg.Error == p.ReqSuccess && proofType == m.ProofOfAbsence:
 			if err := cc.verifyReturnedPromise(df, key); err != nil {
 				return err
 			}
@@ -282,13 +283,13 @@ func (cc *ConsistencyChecks) updateTBs(requestType int, msg *Response,
 
 // verifyFulfilledPromise verifies issued TBs were inserted
 // in the directory as promised.
-func (cc *ConsistencyChecks) verifyFulfilledPromise(uname string, str *DirSTR,
+func (cc *ConsistencyChecks) verifyFulfilledPromise(uname string, str *p.DirSTR,
 	ap *m.AuthenticationPath) error {
 	// FIXME: Which epoch did this lookup happen in?
 	if tb, ok := cc.TBs[uname]; ok {
 		if !bytes.Equal(ap.LookupIndex, tb.Index) ||
 			!bytes.Equal(ap.Leaf.Value, tb.Value) {
-			return CheckBrokenPromise
+			return p.CheckBrokenPromise
 		}
 	}
 	return nil
@@ -304,29 +305,29 @@ func (cc *ConsistencyChecks) verifyFulfilledPromise(uname string, str *DirSTR,
 // 	If the request is a key lookup, and
 // 	- the request is successful, then the directory should return a promise for the lookup binding.
 // These above checks should be performed before calling this method.
-func (cc *ConsistencyChecks) verifyReturnedPromise(df *DirectoryProof,
+func (cc *ConsistencyChecks) verifyReturnedPromise(df *p.DirectoryProof,
 	key []byte) error {
 	ap := df.AP[0]
 	str := df.STR[0]
 	tb := df.TB
 
 	if tb == nil {
-		return CheckBadPromise
+		return p.CheckBadPromise
 	}
 
 	// verify TB's Signature
-	if !cc.signKey.Verify(tb.Serialize(str.Signature), tb.Signature) {
-		return CheckBadSignature
+	if !cc.Verify(tb.Serialize(str.Signature), tb.Signature) {
+		return p.CheckBadSignature
 	}
 
 	if !bytes.Equal(tb.Index, ap.LookupIndex) {
-		return CheckBadPromise
+		return p.CheckBadPromise
 	}
 
 	// key could be nil if we have no information about
 	// the existed binding (TOFU).
 	if key != nil && !bytes.Equal(tb.Value, key) {
-		return CheckBindingsDiffer
+		return p.CheckBindingsDiffer
 	}
 	return nil
 }

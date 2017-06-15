@@ -16,6 +16,7 @@ import (
 	"github.com/coniks-sys/coniks-go/crypto/sign"
 	"github.com/coniks-sys/coniks-go/crypto/vrf"
 	"github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol/directory"
 	"github.com/coniks-sys/coniks-go/utils"
 )
 
@@ -84,7 +85,7 @@ type ConiksServer struct {
 	logger *utils.Logger
 
 	sync.RWMutex
-	dir *protocol.ConiksDirectory
+	dir *directory.ConiksDirectory
 
 	stop          chan struct{}
 	waitStop      sync.WaitGroup
@@ -145,7 +146,7 @@ func NewConiksServer(conf *ServerConfig) *ConiksServer {
 	// create server instance
 	server := new(ConiksServer)
 	server.logger = utils.NewLogger(conf.Logger)
-	server.dir = protocol.NewDirectory(
+	server.dir = directory.New(
 		conf.Policies.EpochDeadline,
 		conf.Policies.vrfKey,
 		conf.Policies.signKey,

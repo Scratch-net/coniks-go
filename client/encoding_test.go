@@ -7,6 +7,7 @@ import (
 
 	"github.com/coniks-sys/coniks-go/keyserver"
 	"github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol/directory"
 )
 
 func TestUnmarshalErrorResponse(t *testing.T) {
@@ -36,7 +37,7 @@ func TestUnmarshalMalformedErrorResponse(t *testing.T) {
 }
 
 func TestUnmarshalSampleMessage(t *testing.T) {
-	d, _ := protocol.NewTestDirectory(t, true)
+	d, _ := directory.NewTestDirectory(t, true)
 	res, _ := d.Register(&protocol.RegistrationRequest{
 		Username: "alice",
 		Key:      []byte("key")})

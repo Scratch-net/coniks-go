@@ -1,19 +1,21 @@
-package protocol
+package auditor
 
 import (
 	"testing"
 
 	"github.com/coniks-sys/coniks-go/crypto"
+	"github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol/directory"
 )
 
 func TestComputeDirectoryIdentity(t *testing.T) {
-	d, _ := NewTestDirectory(t, true)
+	d, _ := directory.NewTestDirectory(t, true)
 	// str0 := d.LatestSTR()
 	d.Update()
 	str1 := d.LatestSTR()
 	var unknown [crypto.HashSizeByte]byte
 	type args struct {
-		str *DirSTR
+		str *protocol.DirSTR
 	}
 	tests := []struct {
 		name string

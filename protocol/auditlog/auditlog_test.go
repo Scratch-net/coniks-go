@@ -1,8 +1,11 @@
-package protocol
+package auditlog
 
 import (
-	"github.com/coniks-sys/coniks-go/crypto"
 	"testing"
+
+	"github.com/coniks-sys/coniks-go/crypto"
+	. "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol/auditor"
 )
 
 func TestInsertEmptyHistory(t *testing.T) {
@@ -15,7 +18,7 @@ func TestUpdateHistory(t *testing.T) {
 	d, aud, hist := NewTestAuditLog(t, 0)
 
 	// update the directory so we can update the audit log
-	dirInitHash := ComputeDirectoryIdentity(hist[0])
+	dirInitHash := auditor.ComputeDirectoryIdentity(hist[0])
 	d.Update()
 	h, _ := aud.get(dirInitHash)
 	resp, _ := NewSTRHistoryRange([]*DirSTR{d.LatestSTR()})
@@ -68,7 +71,7 @@ func TestAuditLogBadEpochRange(t *testing.T) {
 	}
 
 	// compute the hash of the initial STR for later lookups
-	dirInitHash := ComputeDirectoryIdentity(hist[0])
+	dirInitHash := auditor.ComputeDirectoryIdentity(hist[0])
 	h, _ := aud.get(dirInitHash)
 
 	err1 := h.Audit(resp)
@@ -89,7 +92,7 @@ func TestGetLatestObservedSTR(t *testing.T) {
 	d, aud, hist := NewTestAuditLog(t, 0)
 
 	// compute the hash of the initial STR for later lookups
-	dirInitHash := ComputeDirectoryIdentity(hist[0])
+	dirInitHash := auditor.ComputeDirectoryIdentity(hist[0])
 
 	res, err := aud.GetObservedSTRs(&AuditingRequest{
 		DirInitSTRHash: dirInitHash,
@@ -113,7 +116,7 @@ func TestGetObservedSTRInEpoch(t *testing.T) {
 	_, aud, hist := NewTestAuditLog(t, 10)
 
 	// compute the hash of the initial STR for later lookups
-	dirInitHash := ComputeDirectoryIdentity(hist[0])
+	dirInitHash := auditor.ComputeDirectoryIdentity(hist[0])
 
 	res, err := aud.GetObservedSTRs(&AuditingRequest{
 		DirInitSTRHash: dirInitHash,
@@ -141,7 +144,7 @@ func TestGetObservedSTRMultipleEpochs(t *testing.T) {
 	d, aud, hist := NewTestAuditLog(t, 1)
 
 	// compute the hash of the initial STR for later lookups
-	dirInitHash := ComputeDirectoryIdentity(hist[0])
+	dirInitHash := auditor.ComputeDirectoryIdentity(hist[0])
 
 	// first AuditingRequest
 	res, err := aud.GetObservedSTRs(&AuditingRequest{
@@ -222,7 +225,7 @@ func TestGetObservedSTRMalformed(t *testing.T) {
 	_, aud, hist := NewTestAuditLog(t, 10)
 
 	// compute the hash of the initial STR for later lookups
-	dirInitHash := ComputeDirectoryIdentity(hist[0])
+	dirInitHash := auditor.ComputeDirectoryIdentity(hist[0])
 
 	// also test the epoch range
 	_, err := aud.GetObservedSTRs(&AuditingRequest{

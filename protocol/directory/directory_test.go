@@ -1,8 +1,10 @@
-package protocol
+package directory
 
 import (
 	"bytes"
 	"testing"
+
+	. "github.com/coniks-sys/coniks-go/protocol"
 )
 
 func TestRegisterWithTB(t *testing.T) {

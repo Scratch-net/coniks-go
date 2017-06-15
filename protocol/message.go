@@ -266,7 +266,7 @@ func NewSTRHistoryRange(str []*DirSTR) (*Response, ErrorCode) {
 	}, ReqSuccess
 }
 
-func (msg *Response) validate() error {
+func (msg *Response) Validate() error {
 	if Errors[msg.Error] {
 		return msg.Error
 	}

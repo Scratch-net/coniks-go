@@ -1,8 +1,11 @@
-package protocol
+package client
 
 import (
 	"bytes"
 	"testing"
+
+	. "github.com/coniks-sys/coniks-go/protocol"
+	dir "github.com/coniks-sys/coniks-go/protocol/directory"
 )
 
 var (
@@ -11,7 +14,7 @@ var (
 	key   = []byte("key")
 )
 
-func registerAndVerify(d *ConiksDirectory, cc *ConsistencyChecks,
+func registerAndVerify(d *dir.ConiksDirectory, cc *ConsistencyChecks,
 	name string, key []byte) (error, error) {
 	request := &RegistrationRequest{
 		Username: name,
@@ -21,7 +24,7 @@ func registerAndVerify(d *ConiksDirectory, cc *ConsistencyChecks,
 	return err, cc.HandleResponse(RegistrationType, res, name, key)
 }
 
-func lookupAndVerify(d *ConiksDirectory, cc *ConsistencyChecks,
+func lookupAndVerify(d *dir.ConiksDirectory, cc *ConsistencyChecks,
 	name string, key []byte) (error, error) {
 	request := &KeyLookupRequest{
 		Username: name,
@@ -31,8 +34,8 @@ func lookupAndVerify(d *ConiksDirectory, cc *ConsistencyChecks,
 }
 
 func TestMalformedClientMessage(t *testing.T) {
-	d, pk := NewTestDirectory(t, true)
-	cc := NewCC(d.LatestSTR(), true, pk)
+	d, pk := dir.NewTestDirectory(t, true)
+	cc := New(d.LatestSTR(), true, pk)
 
 	request := &RegistrationRequest{
 		Username: "", // invalid username
@@ -40,13 +43,14 @@ func TestMalformedClientMessage(t *testing.T) {
 	}
 	res, _ := d.Register(request)
 	if err := cc.HandleResponse(RegistrationType, res, "", key); err != ErrMalformedClientMessage {
-		t.Error("Unexpected verification result")
+		t.Error("Unexpected verification result",
+			"got", err)
 	}
 }
 
 func TestMalformedDirectoryMessage(t *testing.T) {
-	d, pk := NewTestDirectory(t, true)
-	cc := NewCC(d.LatestSTR(), true, pk)
+	d, pk := dir.NewTestDirectory(t, true)
+	cc := New(d.LatestSTR(), true, pk)
 
 	request := &RegistrationRequest{
 		Username: "alice",
@@ -61,9 +65,9 @@ func TestMalformedDirectoryMessage(t *testing.T) {
 }
 
 func TestVerifyRegistrationResponseWithTB(t *testing.T) {
-	d, pk := NewTestDirectory(t, true)
+	d, pk := dir.NewTestDirectory(t, true)
 
-	cc := NewCC(d.LatestSTR(), true, pk)
+	cc := New(d.LatestSTR(), true, pk)
 
 	if e1, e2 := registerAndVerify(d, cc, alice, key); e1 != ReqSuccess || e2 != CheckPassed {
 		t.Error(e1)
@@ -105,9 +109,9 @@ func TestVerifyRegistrationResponseWithTB(t *testing.T) {
 }
 
 func TestVerifyFullfilledPromise(t *testing.T) {
-	d, pk := NewTestDirectory(t, true)
+	d, pk := dir.NewTestDirectory(t, true)
 
-	cc := NewCC(d.LatestSTR(), true, pk)
+	cc := New(d.LatestSTR(), true, pk)
 
 	if e1, e2 := registerAndVerify(d, cc, alice, key); e1 != ReqSuccess || e2 != CheckPassed {
 		t.Error(e1)
@@ -146,9 +150,9 @@ func TestVerifyFullfilledPromise(t *testing.T) {
 }
 
 func TestVerifyKeyLookupResponseWithTB(t *testing.T) {
-	d, pk := NewTestDirectory(t, true)
+	d, pk := dir.NewTestDirectory(t, true)
 
-	cc := NewCC(d.LatestSTR(), true, pk)
+	cc := New(d.LatestSTR(), true, pk)
 
 	// do lookup first
 	if e1, e2 := lookupAndVerify(d, cc, alice, key); e1 != ReqNameNotFound || e2 != CheckPassed {

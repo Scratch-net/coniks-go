@@ -10,6 +10,7 @@ import (
 	"github.com/coniks-sys/coniks-go/client"
 	"github.com/coniks-sys/coniks-go/keyserver/testutil"
 	p "github.com/coniks-sys/coniks-go/protocol"
+	pclient "github.com/coniks-sys/coniks-go/protocol/client"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -46,7 +47,7 @@ func init() {
 func run(cmd *cobra.Command) {
 	isDebugging, _ := strconv.ParseBool(cmd.Flag("debug").Value.String())
 	conf := loadConfigOrExit(cmd)
-	cc := p.NewCC(nil, true, conf.SigningPubKey)
+	cc := pclient.New(nil, true, conf.SigningPubKey)
 
 	state, err := terminal.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
@@ -109,7 +110,7 @@ func run(cmd *cobra.Command) {
 	}
 }
 
-func register(cc *p.ConsistencyChecks, conf *client.Config, name string, key string) string {
+func register(cc *pclient.ConsistencyChecks, conf *client.Config, name string, key string) string {
 	req, err := client.CreateRegistrationMsg(name, []byte(key))
 	if err != nil {
 		return ("Couldn't marshal registration request!")
@@ -167,7 +168,7 @@ func register(cc *p.ConsistencyChecks, conf *client.Config, name string, key str
 	return ""
 }
 
-func keyLookup(cc *p.ConsistencyChecks, conf *client.Config, name string) string {
+func keyLookup(cc *pclient.ConsistencyChecks, conf *client.Config, name string) string {
 	req, err := client.CreateKeyLookupMsg(name)
 	if err != nil {
 		return ("Couldn't marshal key lookup request!")
