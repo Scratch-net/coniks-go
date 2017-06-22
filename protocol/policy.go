@@ -1,7 +1,7 @@
 package protocol
 
 import (
-	"github.com/coniks-sys/coniks-go/crypto/hasher"
+	conikshasher "github.com/coniks-sys/coniks-go/crypto/hasher/coniks"
 	"github.com/coniks-sys/coniks-go/crypto/vrf"
 	"github.com/coniks-sys/coniks-go/merkletree"
 	"github.com/coniks-sys/coniks-go/utils"
@@ -29,7 +29,7 @@ var _ merkletree.AssocData = (*Policies)(nil)
 func NewPolicies(epDeadline Timestamp, vrfPublicKey vrf.PublicKey) *Policies {
 	return &Policies{
 		Version:       Version,
-		HashID:        hasher.Default().ID(),
+		HashID:        conikshasher.New().ID(),
 		VrfPublicKey:  vrfPublicKey,
 		EpochDeadline: epDeadline,
 	}

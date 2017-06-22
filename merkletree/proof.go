@@ -6,6 +6,7 @@ import (
 
 	"github.com/coniks-sys/coniks-go/crypto"
 	"github.com/coniks-sys/coniks-go/crypto/hasher"
+	conikshasher "github.com/coniks-sys/coniks-go/crypto/hasher/coniks"
 	"github.com/coniks-sys/coniks-go/utils"
 )
 
@@ -40,13 +41,13 @@ type ProofNode struct {
 func (n *ProofNode) hash(treeNonce []byte) []byte {
 	if n.IsEmpty {
 		// empty leaf node
-		return hasher.Default().HashEmpty(
+		return conikshasher.New().HashEmpty(
 			treeNonce,
 			n.Index,
 			n.Level,
 		)
 	} else {
-		return hasher.Default().HashLeaf(
+		return conikshasher.New().HashLeaf(
 			treeNonce,
 			n.Index,
 			n.Level,
@@ -87,9 +88,9 @@ func (ap *AuthenticationPath) authPathHash() []byte {
 	for depth > 0 {
 		depth -= 1
 		if indexBits[depth] { // right child
-			hash = hasher.Default().Digest(ap.PrunedTree[depth][:], hash)
+			hash = conikshasher.New().Digest(ap.PrunedTree[depth][:], hash)
 		} else {
-			hash = hasher.Default().Digest(hash, ap.PrunedTree[depth][:])
+			hash = conikshasher.New().Digest(hash, ap.PrunedTree[depth][:])
 		}
 	}
 	return hash

@@ -2,7 +2,7 @@ package merkletree
 
 import (
 	"github.com/coniks-sys/coniks-go/crypto"
-	"github.com/coniks-sys/coniks-go/crypto/hasher"
+	conikshasher "github.com/coniks-sys/coniks-go/crypto/hasher/coniks"
 	"github.com/coniks-sys/coniks-go/utils"
 )
 
@@ -83,11 +83,11 @@ func (n *interiorNode) hash(m *MerkleTree) []byte {
 	if n.rightHash == nil {
 		n.rightHash = n.rightChild.hash(m)
 	}
-	return hasher.Default().HashInterior(n.leftHash, n.rightHash)
+	return conikshasher.New().HashInterior(n.leftHash, n.rightHash)
 }
 
 func (n *userLeafNode) hash(m *MerkleTree) []byte {
-	return hasher.Default().HashLeaf(
+	return conikshasher.New().HashLeaf(
 		m.nonce,
 		n.index,
 		n.level,
@@ -96,7 +96,7 @@ func (n *userLeafNode) hash(m *MerkleTree) []byte {
 }
 
 func (n *emptyNode) hash(m *MerkleTree) []byte {
-	return hasher.Default().HashEmpty(
+	return conikshasher.New().HashEmpty(
 		m.nonce,
 		n.index,
 		n.level,
