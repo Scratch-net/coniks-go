@@ -39,7 +39,7 @@ var hashers = make(map[string]PADHasher)
 // RegisterHasher registers a hasher for use.
 func RegisterHasher(h string, f func() PADHasher) {
 	if _, ok := hashers[h]; ok {
-		panic(fmt.Sprintf("RegisterHasher(%v) is already registered", h))
+		panic(fmt.Sprintf("%s is already registered", h))
 	}
 	hashers[h] = f()
 }
@@ -49,5 +49,5 @@ func Hasher(h string) (PADHasher, error) {
 	if f, ok := hashers[h]; ok {
 		return f, nil
 	}
-	return nil, fmt.Errorf("Hasher(%v) is unknown hasher", h)
+	return nil, fmt.Errorf("%s is an unknown hasher", h)
 }
