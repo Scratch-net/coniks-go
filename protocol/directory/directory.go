@@ -340,13 +340,13 @@ func (d *ConiksDirectory) Monitor(req *p.MonitoringRequest) (
 // and endEpoch are the epoch range endpoints indicated in the client's
 // request. If req.endEpoch is greater than d.LatestSTR().Epoch,
 // the end of the range will be set to d.LatestSTR().Epoch.
-func (d *ConiksDirectory) GetSTRHistory(req *STRHistoryRequest) (*Response,
-	ErrorCode) {
+func (d *ConiksDirectory) GetSTRHistory(req *p.STRHistoryRequest) (*p.Response,
+	p.ErrorCode) {
 	// make sure the request is well-formed
 	if req.StartEpoch > d.LatestSTR().Epoch ||
 		req.EndEpoch < req.StartEpoch {
-		return NewErrorResponse(ErrMalformedAuditorMessage),
-			ErrMalformedAuditorMessage
+		return p.NewErrorResponse(p.ErrMalformedAuditorMessage),
+			p.ErrMalformedAuditorMessage
 	}
 
 	endEp := req.EndEpoch
@@ -354,11 +354,11 @@ func (d *ConiksDirectory) GetSTRHistory(req *STRHistoryRequest) (*Response,
 		endEp = d.LatestSTR().Epoch
 	}
 
-	var strs []*DirSTR
+	var strs []*p.DirSTR
 	for ep := req.StartEpoch; ep <= endEp; ep++ {
-		str := NewDirSTR(d.pad.GetSTR(ep))
+		str := p.NewDirSTR(d.pad.GetSTR(ep))
 		strs = append(strs, str)
 	}
 
-	return NewSTRHistoryRange(strs)
+	return p.NewSTRHistoryRange(strs)
 }

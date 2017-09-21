@@ -52,7 +52,7 @@ func (h *directoryHistory) updateVerifiedSTR(newVerified *p.DirSTR) {
 // insertRange inserts the given range of STRs snaps
 // into the directoryHistory h.
 // insertRange() assumes that snaps has been audited by Audit().
-func (h *directoryHistory) insertRange(snaps []*DirSTR) {
+func (h *directoryHistory) insertRange(snaps []*p.DirSTR) {
 	for i := 0; i < len(snaps); i++ {
 		h.updateVerifiedSTR(snaps[i])
 	}
@@ -68,17 +68,17 @@ func (h *directoryHistory) insertRange(snaps []*DirSTR) {
 // Audit() is called when an auditor receives new STRs
 // from a specific directory.
 func (h *directoryHistory) Audit(msg *p.Response) error {
-	if err := msg.validate(); err != nil {
+	if err := msg.Validate(); err != nil {
 		return err
 	}
 
-	strs := msg.DirectoryResponse.(*STRHistoryRange)
+	strs := msg.DirectoryResponse.(*p.STRHistoryRange)
 
 	// audit the STRs
 	// if strs.STR is somehow malformed or invalid (e.g. strs.STR
 	// contains old STRs), AuditDirectory() will detect this
 	// and throw and error
-	if err := h.AuditDirectory(strs.STR); err != CheckPassed {
+	if err := h.AuditDirectory(strs.STR); err != p.CheckPassed {
 		return err
 	}
 

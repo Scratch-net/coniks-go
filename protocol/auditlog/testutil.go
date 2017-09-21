@@ -26,7 +26,7 @@ func NewTestAuditLog(t *testing.T, numEpochs int) (
 	// always include the actual latest STR
 	hist = append(hist, d.LatestSTR())
 
-	err := aud.Insert("test-server", pk, hist)
+	err := aud.InitHistory("test-server", pk, hist)
 	if err != nil {
 		t.Fatalf("Error inserting a new history with %d STRs", numEpochs+1)
 	}
