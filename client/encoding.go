@@ -3,46 +3,46 @@ package client
 import (
 	"encoding/json"
 
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 )
 
 // UnmarshalResponse decodes the given message into a protocol.Response
 // according to the given request type t. The request types are integer
 // constants defined in the protocol package.
-func UnmarshalResponse(t int, msg []byte) *p.Response {
+func UnmarshalResponse(t int, msg []byte) *protocol.Response {
 	type Response struct {
-		Error             p.ErrorCode
+		Error             protocol.ErrorCode
 		DirectoryResponse json.RawMessage
 	}
 	var res Response
 	if err := json.Unmarshal(msg, &res); err != nil {
-		return &p.Response{
-			Error: p.ErrMalformedDirectoryMessage,
+		return &protocol.Response{
+			Error: protocol.ErrMalformedDirectoryMessage,
 		}
 	}
 
 	// DirectoryResponse is omitempty for the places
 	// where Error is in Errors
 	if res.DirectoryResponse == nil {
-		if !p.Errors[res.Error] {
-			return &p.Response{
-				Error: p.ErrMalformedDirectoryMessage,
+		if !protocol.Errors[res.Error] {
+			return &protocol.Response{
+				Error: protocol.ErrMalformedDirectoryMessage,
 			}
 		}
-		return &p.Response{
+		return &protocol.Response{
 			Error: res.Error,
 		}
 	}
 
 	switch t {
-	case p.RegistrationType, p.KeyLookupType, p.KeyLookupInEpochType, p.MonitoringType:
-		response := new(p.DirectoryProof)
+	case protocol.RegistrationType, protocol.KeyLookupType, protocol.KeyLookupInEpochType, protocol.MonitoringType:
+		response := new(protocol.DirectoryProof)
 		if err := json.Unmarshal(res.DirectoryResponse, &response); err != nil {
-			return &p.Response{
-				Error: p.ErrMalformedDirectoryMessage,
+			return &protocol.Response{
+				Error: protocol.ErrMalformedDirectoryMessage,
 			}
 		}
-		return &p.Response{
+		return &protocol.Response{
 			Error:             res.Error,
 			DirectoryResponse: response,
 		}
@@ -54,9 +54,9 @@ func UnmarshalResponse(t int, msg []byte) *p.Response {
 // CreateRegistrationMsg returns a JSON encoding of
 // a protocol.RegistrationRequest for the given (name, key) pair.
 func CreateRegistrationMsg(name string, key []byte) ([]byte, error) {
-	return json.Marshal(&p.Request{
-		Type: p.RegistrationType,
-		Request: &p.RegistrationRequest{
+	return json.Marshal(&protocol.Request{
+		Type: protocol.RegistrationType,
+		Request: &protocol.RegistrationRequest{
 			Username: name,
 			Key:      key,
 		},
@@ -66,9 +66,9 @@ func CreateRegistrationMsg(name string, key []byte) ([]byte, error) {
 // CreateKeyLookupMsg returns a JSON encoding of
 // a protocol.KeyLookupRequest for the given name.
 func CreateKeyLookupMsg(name string) ([]byte, error) {
-	return json.Marshal(&p.Request{
-		Type: p.KeyLookupType,
-		Request: &p.KeyLookupRequest{
+	return json.Marshal(&protocol.Request{
+		Type: protocol.KeyLookupType,
+		Request: &protocol.KeyLookupRequest{
 			Username: name,
 		},
 	})

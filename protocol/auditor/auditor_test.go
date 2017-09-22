@@ -3,7 +3,7 @@ package auditor
 import (
 	"testing"
 
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 	"github.com/coniks-sys/coniks-go/protocol/directory"
 )
 
@@ -27,9 +27,9 @@ func TestAuditBadSTRSignature(t *testing.T) {
 
 	// try to audit a new STR with a bad signature:
 	// case signature verification failure in verifySTRConsistency()
-	err := aud.AuditDirectory([]*p.DirSTR{str})
-	if err != p.CheckBadSignature {
-		t.Error("Expect", p.CheckBadSignature, "got", err)
+	err := aud.AuditDirectory([]*protocol.DirSTR{str})
+	if err != protocol.CheckBadSignature {
+		t.Error("Expect", protocol.CheckBadSignature, "got", err)
 	}
 }
 
@@ -50,9 +50,9 @@ func TestAuditBadSameEpoch(t *testing.T) {
 
 	// try to audit a diverging STR for the same epoch
 	// case compareWithVerified() == false in checkAgainstVerified()
-	err := aud.AuditDirectory([]*p.DirSTR{str})
-	if err != p.CheckBadSTR {
-		t.Error("Expect", p.CheckBadSTR, "got", err)
+	err := aud.AuditDirectory([]*protocol.DirSTR{str})
+	if err != protocol.CheckBadSTR {
+		t.Error("Expect", protocol.CheckBadSTR, "got", err)
 	}
 }
 
@@ -76,21 +76,21 @@ func TestAuditBadNewSTREpoch(t *testing.T) {
 
 	// try to audit only STR epoch 4:
 	// case str.Epoch > verifiedSTR.Epoch+1 in checkAgainstVerifiedSTR()
-	err := aud.AuditDirectory([]*p.DirSTR{d.LatestSTR()})
-	if err != p.CheckBadSTR {
-		t.Error("str.Epoch > verified.Epoch+1 - Expect", p.CheckBadSTR, "got", err)
+	err := aud.AuditDirectory([]*protocol.DirSTR{d.LatestSTR()})
+	if err != protocol.CheckBadSTR {
+		t.Error("str.Epoch > verified.Epoch+1 - Expect", protocol.CheckBadSTR, "got", err)
 	}
 
 	// try to re-audit only STR epoch 2:
 	// case str.Epoch < verifiedSTR.Epoch in checkAgainstVerifiedSTR()
-	resp, _ := d.GetSTRHistory(&p.STRHistoryRequest{
+	resp, _ := d.GetSTRHistory(&protocol.STRHistoryRequest{
 		StartEpoch: uint64(2),
 		EndEpoch:   uint64(2)})
 
-	strs := resp.DirectoryResponse.(*p.STRHistoryRange)
+	strs := resp.DirectoryResponse.(*protocol.STRHistoryRange)
 	err = aud.AuditDirectory(strs.STR)
-	if err != p.CheckBadSTR {
-		t.Error("str.Epoch < verified.Epoch - Expect", p.CheckBadSTR, "got", err)
+	if err != protocol.CheckBadSTR {
+		t.Error("str.Epoch < verified.Epoch - Expect", protocol.CheckBadSTR, "got", err)
 	}
 }
 
@@ -112,22 +112,22 @@ func TestAuditMalformedSTRRange(t *testing.T) {
 		d.Update()
 	}
 
-	resp, err := d.GetSTRHistory(&p.STRHistoryRequest{
+	resp, err := d.GetSTRHistory(&protocol.STRHistoryRequest{
 		StartEpoch: uint64(4),
 		EndEpoch:   uint64(d.LatestSTR().Epoch)})
 
-	if err != p.ReqSuccess {
+	if err != protocol.ReqSuccess {
 		t.Fatalf("Error occurred getting the latest STR from the directory: %s", err.Error())
 	}
 
-	strs := resp.DirectoryResponse.(*p.STRHistoryRange)
+	strs := resp.DirectoryResponse.(*protocol.STRHistoryRange)
 	// make a malformed range
 	strs.STR[2] = nil
 
 	// try to audit a malformed STR range
 	// case str[i] == nil in verifySTRRange() loop
 	err1 := aud.AuditDirectory(strs.STR)
-	if err1 != p.ErrMalformedDirectoryMessage {
-		t.Error("Expect", p.ErrMalformedDirectoryMessage, "got", err1)
+	if err1 != protocol.ErrMalformedDirectoryMessage {
+		t.Error("Expect", protocol.ErrMalformedDirectoryMessage, "got", err1)
 	}
 }

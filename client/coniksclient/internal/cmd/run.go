@@ -9,7 +9,7 @@ import (
 
 	"github.com/coniks-sys/coniks-go/client"
 	"github.com/coniks-sys/coniks-go/keyserver/testutil"
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 	pclient "github.com/coniks-sys/coniks-go/protocol/client"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
@@ -138,24 +138,24 @@ func register(cc *pclient.ConsistencyChecks, conf *client.Config, name string, k
 		return ("Invalid config!")
 	}
 
-	response := client.UnmarshalResponse(p.RegistrationType, res)
-	err = cc.HandleResponse(p.RegistrationType, response, name, []byte(key))
+	response := client.UnmarshalResponse(protocol.RegistrationType, res)
+	err = cc.HandleResponse(protocol.RegistrationType, response, name, []byte(key))
 	switch err {
-	case p.CheckBadSTR:
+	case protocol.CheckBadSTR:
 		// FIXME: remove me
 		return ("Error: " + err.Error() + ". Maybe the client missed an epoch in between two commands, monitoring isn't supported yet.")
-	case p.CheckPassed:
+	case protocol.CheckPassed:
 		switch response.Error {
-		case p.ReqSuccess:
+		case protocol.ReqSuccess:
 			return ("Succesfully registered name: " + name)
-		case p.ReqNameExisted:
+		case protocol.ReqNameExisted:
 			return ("Name is already registered.")
 		}
-	case p.CheckBindingsDiffer:
+	case protocol.CheckBindingsDiffer:
 		switch response.Error {
-		case p.ReqNameExisted:
+		case protocol.ReqNameExisted:
 			return (`Are you trying to update your binding? Unfortunately, KeyChange isn't supported yet.`)
-		case p.ReqSuccess:
+		case protocol.ReqSuccess:
 			recvKey, err := response.GetKey()
 			if err != nil {
 				return ("Oops! The server snuck in some other key. However, I cannot get the key from the response, error: " + err.Error())
@@ -191,25 +191,25 @@ func keyLookup(cc *pclient.ConsistencyChecks, conf *client.Config, name string) 
 		return ("Invalid config!")
 	}
 
-	response := client.UnmarshalResponse(p.KeyLookupType, res)
+	response := client.UnmarshalResponse(protocol.KeyLookupType, res)
 	if key, ok := cc.Bindings[name]; ok {
-		err = cc.HandleResponse(p.KeyLookupType, response, name, []byte(key))
+		err = cc.HandleResponse(protocol.KeyLookupType, response, name, []byte(key))
 	} else {
-		err = cc.HandleResponse(p.KeyLookupType, response, name, nil)
+		err = cc.HandleResponse(protocol.KeyLookupType, response, name, nil)
 	}
 	switch err {
-	case p.CheckBadSTR:
+	case protocol.CheckBadSTR:
 		// FIXME: remove me
 		return ("Error: " + err.Error() + ". Maybe the client missed an epoch in between two commands, monitoring isn't supported yet.")
-	case p.CheckPassed:
+	case protocol.CheckPassed:
 		switch response.Error {
-		case p.ReqSuccess:
+		case protocol.ReqSuccess:
 			key, err := response.GetKey()
 			if err != nil {
 				return ("Cannot get the key from the response, error: " + err.Error())
 			}
 			return ("Found! Key bound to name is: [" + string(key) + "]")
-		case p.ReqNameNotFound:
+		case protocol.ReqNameNotFound:
 			return ("Name isn't registered.")
 		}
 	default:

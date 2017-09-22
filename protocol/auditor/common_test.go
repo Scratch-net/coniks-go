@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/coniks-sys/coniks-go/crypto"
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 	"github.com/coniks-sys/coniks-go/protocol/directory"
 )
 
@@ -15,7 +15,7 @@ func TestComputeDirectoryIdentity(t *testing.T) {
 	str1 := d.LatestSTR()
 	var unknown [crypto.HashSizeByte]byte
 	type args struct {
-		str *p.DirSTR
+		str *protocol.DirSTR
 	}
 	tests := []struct {
 		name string

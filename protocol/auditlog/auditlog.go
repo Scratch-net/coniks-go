@@ -8,14 +8,14 @@ package auditlog
 import (
 	"github.com/coniks-sys/coniks-go/crypto"
 	"github.com/coniks-sys/coniks-go/crypto/sign"
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 	"github.com/coniks-sys/coniks-go/protocol/auditor"
 )
 
 type directoryHistory struct {
 	*auditor.AudState
 	addr      string
-	snapshots map[uint64]*p.DirSTR
+	snapshots map[uint64]*protocol.DirSTR
 }
 
 // A ConiksAuditLog maintains the histories
@@ -31,12 +31,12 @@ type ConiksAuditLog map[[crypto.HashSizeByte]byte]*directoryHistory
 // caller validates that initSTR is for epoch 0.
 func newDirectoryHistory(addr string,
 	signKey sign.PublicKey,
-	initSTR *p.DirSTR) *directoryHistory {
+	initSTR *protocol.DirSTR) *directoryHistory {
 	a := auditor.New(signKey, initSTR)
 	h := &directoryHistory{
 		AudState:  a,
 		addr:      addr,
-		snapshots: make(map[uint64]*p.DirSTR),
+		snapshots: make(map[uint64]*protocol.DirSTR),
 	}
 	h.updateVerifiedSTR(initSTR)
 	return h
@@ -44,7 +44,7 @@ func newDirectoryHistory(addr string,
 
 // updateVerifiedSTR inserts the latest verified STR into a directory
 // history; assumes the STRs have been validated by the caller.
-func (h *directoryHistory) updateVerifiedSTR(newVerified *p.DirSTR) {
+func (h *directoryHistory) updateVerifiedSTR(newVerified *protocol.DirSTR) {
 	h.Update(newVerified)
 	h.snapshots[newVerified.Epoch] = newVerified
 }
@@ -52,7 +52,7 @@ func (h *directoryHistory) updateVerifiedSTR(newVerified *p.DirSTR) {
 // insertRange inserts the given range of STRs snaps
 // into the directoryHistory h.
 // insertRange() assumes that snaps has been audited by Audit().
-func (h *directoryHistory) insertRange(snaps []*p.DirSTR) {
+func (h *directoryHistory) insertRange(snaps []*protocol.DirSTR) {
 	for i := 0; i < len(snaps); i++ {
 		h.updateVerifiedSTR(snaps[i])
 	}
@@ -67,18 +67,18 @@ func (h *directoryHistory) insertRange(snaps []*p.DirSTR) {
 // finally updates the snapshots if the checks pass.
 // Audit() is called when an auditor receives new STRs
 // from a specific directory.
-func (h *directoryHistory) Audit(msg *p.Response) error {
+func (h *directoryHistory) Audit(msg *protocol.Response) error {
 	if err := msg.Validate(); err != nil {
 		return err
 	}
 
-	strs := msg.DirectoryResponse.(*p.STRHistoryRange)
+	strs := msg.DirectoryResponse.(*protocol.STRHistoryRange)
 
 	// audit the STRs
 	// if strs.STR is somehow malformed or invalid (e.g. strs.STR
 	// contains old STRs), AuditDirectory() will detect this
 	// and throw and error
-	if err := h.AuditDirectory(strs.STR); err != p.CheckPassed {
+	if err := h.AuditDirectory(strs.STR); err != protocol.CheckPassed {
 		return err
 	}
 
@@ -124,11 +124,11 @@ func (l ConiksAuditLog) get(dirInitHash [crypto.HashSizeByte]byte) (*directoryHi
 // InitHistory() returns an ErrAuditLog if the auditor attempts to create
 // a new history for a known directory, and nil otherwise.
 func (l ConiksAuditLog) InitHistory(addr string, signKey sign.PublicKey,
-	snaps []*p.DirSTR) error {
+	snaps []*protocol.DirSTR) error {
 	// make sure we're getting an initial STR at the very least
 	if len(snaps) < 1 || snaps[0].Epoch != 0 {
 		// FIXME: This should be a more generic "malformed error"
-		return p.ErrMalformedDirectoryMessage
+		return protocol.ErrMalformedDirectoryMessage
 	}
 
 	// compute the hash of the initial STR
@@ -138,7 +138,7 @@ func (l ConiksAuditLog) InitHistory(addr string, signKey sign.PublicKey,
 	// we already know
 	h, ok := l.get(dirInitHash)
 	if ok {
-		return p.ErrAuditLog
+		return protocol.ErrAuditLog
 	}
 
 	// create the new directory history
@@ -173,25 +173,25 @@ func (l ConiksAuditLog) InitHistory(addr string, signKey sign.PublicKey,
 // If the auditor doesn't have any history entries for the requested CONIKS
 // directory, GetObservedSTRs() returns a
 // message.NewErrorResponse(ReqUnknownDirectory) tuple.
-func (l ConiksAuditLog) GetObservedSTRs(req *p.AuditingRequest) (*p.Response,
-	p.ErrorCode) {
+func (l ConiksAuditLog) GetObservedSTRs(req *protocol.AuditingRequest) (*protocol.Response,
+	protocol.ErrorCode) {
 	// make sure we have a history for the requested directory in the log
 	h, ok := l.get(req.DirInitSTRHash)
 	if !ok {
-		return p.NewErrorResponse(p.ReqUnknownDirectory), p.ReqUnknownDirectory
+		return protocol.NewErrorResponse(protocol.ReqUnknownDirectory), protocol.ReqUnknownDirectory
 	}
 
 	// make sure the request is well-formed
 	if req.EndEpoch > h.VerifiedSTR().Epoch || req.StartEpoch > req.EndEpoch {
-		return p.NewErrorResponse(p.ErrMalformedClientMessage),
-			p.ErrMalformedClientMessage
+		return protocol.NewErrorResponse(protocol.ErrMalformedClientMessage),
+			protocol.ErrMalformedClientMessage
 	}
 
-	var strs []*p.DirSTR
+	var strs []*protocol.DirSTR
 	for ep := req.StartEpoch; ep <= req.EndEpoch; ep++ {
 		str := h.snapshots[ep]
 		strs = append(strs, str)
 	}
 
-	return p.NewSTRHistoryRange(strs)
+	return protocol.NewSTRHistoryRange(strs)
 }

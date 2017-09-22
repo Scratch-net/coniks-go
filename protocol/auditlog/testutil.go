@@ -3,7 +3,7 @@ package auditlog
 import (
 	"testing"
 
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 	"github.com/coniks-sys/coniks-go/protocol/directory"
 )
 
@@ -14,11 +14,11 @@ import (
 // initialize the log; if numEpochs > 0, the history contains numEpochs+1
 // STRs as it always includes the STR after the last directory update
 func NewTestAuditLog(t *testing.T, numEpochs int) (
-	*directory.ConiksDirectory, ConiksAuditLog, []*p.DirSTR) {
+	*directory.ConiksDirectory, ConiksAuditLog, []*protocol.DirSTR) {
 	d, pk := directory.NewTestDirectory(t, true)
 	aud := New()
 
-	var hist []*p.DirSTR
+	var hist []*protocol.DirSTR
 	for ep := 0; ep < numEpochs; ep++ {
 		hist = append(hist, d.LatestSTR())
 		d.Update()

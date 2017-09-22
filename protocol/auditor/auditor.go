@@ -8,25 +8,25 @@ import (
 	"reflect"
 
 	"github.com/coniks-sys/coniks-go/crypto/sign"
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 )
 
 // Auditor provides a generic interface allowing different
 // auditor types to implement specific auditing functionality.
 type Auditor interface {
-	AuditDirectory([]*p.DirSTR) error
+	AuditDirectory([]*protocol.DirSTR) error
 }
 
 // AudState verifies the hash chain of a specific directory.
 type AudState struct {
 	signKey     sign.PublicKey
-	verifiedSTR *p.DirSTR
+	verifiedSTR *protocol.DirSTR
 }
 
 var _ Auditor = (*AudState)(nil)
 
 // New instantiates a new auditor state from a persistance storage.
-func New(signKey sign.PublicKey, verified *p.DirSTR) *AudState {
+func New(signKey sign.PublicKey, verified *protocol.DirSTR) *AudState {
 	a := &AudState{
 		signKey:     signKey,
 		verifiedSTR: verified,
@@ -41,22 +41,22 @@ func (a *AudState) Verify(message, sig []byte) bool {
 }
 
 // VerifiedSTR returns the newly verified STR.
-func (a *AudState) VerifiedSTR() *p.DirSTR {
+func (a *AudState) VerifiedSTR() *protocol.DirSTR {
 	return a.verifiedSTR
 }
 
 // Update updates the auditor's verifiedSTR to newSTR
-func (a *AudState) Update(newSTR *p.DirSTR) {
+func (a *AudState) Update(newSTR *protocol.DirSTR) {
 	a.verifiedSTR = newSTR
 }
 
 // compareWithVerified checks whether the received STR is the same as
 // the verified STR in the AudState using reflect.DeepEqual().
-func (a *AudState) compareWithVerified(str *p.DirSTR) error {
+func (a *AudState) compareWithVerified(str *protocol.DirSTR) error {
 	if reflect.DeepEqual(a.verifiedSTR, str) {
 		return nil
 	}
-	return p.CheckBadSTR
+	return protocol.CheckBadSTR
 }
 
 // verifySTRConsistency checks the consistency between 2 snapshots.
@@ -64,17 +64,17 @@ func (a *AudState) compareWithVerified(str *p.DirSTR) error {
 // The signKey param either comes from a client's
 // pinned signing key in its consistency state,
 // or an auditor's pinned signing key in its history.
-func (a *AudState) verifySTRConsistency(prevSTR, str *p.DirSTR) error {
+func (a *AudState) verifySTRConsistency(prevSTR, str *protocol.DirSTR) error {
 	// verify STR's signature
 	if !a.signKey.Verify(str.Serialize(), str.Signature) {
-		return p.CheckBadSignature
+		return protocol.CheckBadSignature
 	}
 	if str.VerifyHashChain(prevSTR) {
 		return nil
 	}
 
 	// TODO: verify the directory's policies as well. See #115
-	return p.CheckBadSTR
+	return protocol.CheckBadSTR
 }
 
 // CheckSTRAgainstVerified checks an STR str against the a.verifiedSTR.
@@ -86,7 +86,7 @@ func (a *AudState) verifySTRConsistency(prevSTR, str *p.DirSTR) error {
 // or the appropriate consistency check error if any of the checks fail,
 // or str's epoch is anything other than the same or one ahead of
 // a.verifiedSTR.
-func (a *AudState) CheckSTRAgainstVerified(str *p.DirSTR) error {
+func (a *AudState) CheckSTRAgainstVerified(str *protocol.DirSTR) error {
 	// FIXME: check whether the STR was issued on time and whatnot.
 	// Maybe it has something to do w/ #81 and client
 	// transitioning between epochs.
@@ -107,7 +107,7 @@ func (a *AudState) CheckSTRAgainstVerified(str *p.DirSTR) error {
 			return err
 		}
 	default:
-		return p.CheckBadSTR
+		return protocol.CheckBadSTR
 	}
 
 	return nil
@@ -117,14 +117,14 @@ func (a *AudState) CheckSTRAgainstVerified(str *p.DirSTR) error {
 // of a directory's STRs. It begins by verifying the STR consistency between
 // the given prevSTR and the first STR in the given range, and
 // then verifies the consistency between each subsequent STR pair.
-func (a *AudState) VerifySTRRange(prevSTR *p.DirSTR, strs []*p.DirSTR) error {
+func (a *AudState) VerifySTRRange(prevSTR *protocol.DirSTR, strs []*protocol.DirSTR) error {
 	prev := prevSTR
 	for i := 0; i < len(strs); i++ {
 		str := strs[i]
 		if str == nil {
 			// FIXME: if this comes from the auditor, this
 			// should really be an ErrMalformedAuditorMessage
-			return p.ErrMalformedDirectoryMessage
+			return protocol.ErrMalformedDirectoryMessage
 		}
 
 		// verify the consistency of each STR in the range
@@ -144,10 +144,10 @@ func (a *AudState) VerifySTRRange(prevSTR *p.DirSTR, strs []*p.DirSTR) error {
 // range if the message contains more than one STR.
 // AuditDirectory() returns the appropriate consistency check error
 // if any of the checks fail, or nil if the checks pass.
-func (a *AudState) AuditDirectory(strs []*p.DirSTR) error {
+func (a *AudState) AuditDirectory(strs []*protocol.DirSTR) error {
 	// validate strs
 	if len(strs) == 0 {
-		return p.ErrMalformedDirectoryMessage
+		return protocol.ErrMalformedDirectoryMessage
 	}
 
 	// check STR against the latest verified STR
@@ -162,5 +162,5 @@ func (a *AudState) AuditDirectory(strs []*p.DirSTR) error {
 		}
 	}
 
-	return p.CheckPassed
+	return protocol.CheckPassed
 }

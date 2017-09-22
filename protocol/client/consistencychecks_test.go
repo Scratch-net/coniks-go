@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/coniks-sys/coniks-go/protocol"
-	dir "github.com/coniks-sys/coniks-go/protocol/directory"
+	"github.com/coniks-sys/coniks-go/protocol/directory"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 	key   = []byte("key")
 )
 
-func registerAndVerify(d *dir.ConiksDirectory, cc *ConsistencyChecks,
+func registerAndVerify(d *directory.ConiksDirectory, cc *ConsistencyChecks,
 	name string, key []byte) (error, error) {
 	request := &RegistrationRequest{
 		Username: name,
@@ -24,7 +24,7 @@ func registerAndVerify(d *dir.ConiksDirectory, cc *ConsistencyChecks,
 	return err, cc.HandleResponse(RegistrationType, res, name, key)
 }
 
-func lookupAndVerify(d *dir.ConiksDirectory, cc *ConsistencyChecks,
+func lookupAndVerify(d *directory.ConiksDirectory, cc *ConsistencyChecks,
 	name string, key []byte) (error, error) {
 	request := &KeyLookupRequest{
 		Username: name,
@@ -34,7 +34,7 @@ func lookupAndVerify(d *dir.ConiksDirectory, cc *ConsistencyChecks,
 }
 
 func TestMalformedClientMessage(t *testing.T) {
-	d, pk := dir.NewTestDirectory(t, true)
+	d, pk := directory.NewTestDirectory(t, true)
 	cc := New(d.LatestSTR(), true, pk)
 
 	request := &RegistrationRequest{
@@ -49,7 +49,7 @@ func TestMalformedClientMessage(t *testing.T) {
 }
 
 func TestMalformedDirectoryMessage(t *testing.T) {
-	d, pk := dir.NewTestDirectory(t, true)
+	d, pk := directory.NewTestDirectory(t, true)
 	cc := New(d.LatestSTR(), true, pk)
 
 	request := &RegistrationRequest{
@@ -65,7 +65,7 @@ func TestMalformedDirectoryMessage(t *testing.T) {
 }
 
 func TestVerifyRegistrationResponseWithTB(t *testing.T) {
-	d, pk := dir.NewTestDirectory(t, true)
+	d, pk := directory.NewTestDirectory(t, true)
 
 	cc := New(d.LatestSTR(), true, pk)
 
@@ -109,7 +109,7 @@ func TestVerifyRegistrationResponseWithTB(t *testing.T) {
 }
 
 func TestVerifyFullfilledPromise(t *testing.T) {
-	d, pk := dir.NewTestDirectory(t, true)
+	d, pk := directory.NewTestDirectory(t, true)
 
 	cc := New(d.LatestSTR(), true, pk)
 
@@ -150,7 +150,7 @@ func TestVerifyFullfilledPromise(t *testing.T) {
 }
 
 func TestVerifyKeyLookupResponseWithTB(t *testing.T) {
-	d, pk := dir.NewTestDirectory(t, true)
+	d, pk := directory.NewTestDirectory(t, true)
 
 	cc := New(d.LatestSTR(), true, pk)
 

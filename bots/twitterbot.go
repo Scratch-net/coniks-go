@@ -12,7 +12,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/coniks-sys/coniks-go/keyserver"
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/coniks-sys/coniks-go/protocol"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
@@ -171,8 +171,8 @@ func (bot *TwitterBot) HandleRegistration(username string, msg []byte) string {
 	if err != nil {
 		invalid = true
 	} else {
-		request, ok := req.Request.(*p.RegistrationRequest)
-		if req.Type != p.RegistrationType || !ok ||
+		request, ok := req.Request.(*protocol.RegistrationRequest)
+		if req.Type != protocol.RegistrationType || !ok ||
 			// FIXME: Agree on a convention in issues #17 / #30
 			!strings.EqualFold(strings.ToLower(username)+"@twitter", request.Username) {
 			invalid = true
@@ -181,7 +181,7 @@ func (bot *TwitterBot) HandleRegistration(username string, msg []byte) string {
 	if invalid {
 		log.Println("[registration bot] Malformed client request")
 		res, err := keyserver.MarshalResponse(
-			p.NewErrorResponse(p.ErrMalformedClientMessage))
+			protocol.NewErrorResponse(protocol.ErrMalformedClientMessage))
 		if err != nil {
 			panic(err)
 		}
@@ -193,7 +193,7 @@ func (bot *TwitterBot) HandleRegistration(username string, msg []byte) string {
 	if err != nil {
 		log.Println("[registration bot] " + err.Error())
 		res, err := keyserver.MarshalResponse(
-			p.NewErrorResponse(p.ErrDirectory))
+			protocol.NewErrorResponse(protocol.ErrDirectory))
 		if err != nil {
 			panic(err)
 		}
