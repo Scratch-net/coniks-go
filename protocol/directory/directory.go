@@ -114,7 +114,7 @@ func (d *ConiksDirectory) NewTB(name string, key []byte) *protocol.TemporaryBind
 //
 // A request without a username or without a public key is considered
 // malformed, and causes Register() to return a
-// message.NewErrorResponse(ErrMalformedClientMessage) tuple.
+// message.NewErrorResponse(ErrMalformedMessage) tuple.
 // Register() inserts the new mapping in req
 // into a pending version of the directory so it can be included in the
 // snapshot taken at the end of the latest epoch, and returns a
@@ -132,8 +132,8 @@ func (d *ConiksDirectory) Register(req *protocol.RegistrationRequest) (
 	*protocol.Response, protocol.ErrorCode) {
 	// make sure the request is well-formed
 	if len(req.Username) <= 0 || len(req.Key) <= 0 {
-		return protocol.NewErrorResponse(protocol.ErrMalformedClientMessage),
-			protocol.ErrMalformedClientMessage
+		return protocol.NewErrorResponse(protocol.ErrMalformedMessage),
+			protocol.ErrMalformedMessage
 	}
 
 	// check whether the name already exists
@@ -177,7 +177,7 @@ func (d *ConiksDirectory) Register(req *protocol.RegistrationRequest) (
 //
 // A request without a username is considered
 // malformed, and causes KeyLookup() to return a
-// message.NewErrorResponse(ErrMalformedClientMessage) tuple.
+// message.NewErrorResponse(ErrMalformedMessage) tuple.
 // If the username doesn't have an entry in the latest directory
 // snapshot and also isn't pending registration (i.e. has a corresponding
 // TB), KeyLookup() returns a message.NewKeyLookupProof(ap=proof of absence,
@@ -195,8 +195,8 @@ func (d *ConiksDirectory) KeyLookup(req *protocol.KeyLookupRequest) (
 
 	// make sure the request is well-formed
 	if len(req.Username) <= 0 {
-		return protocol.NewErrorResponse(protocol.ErrMalformedClientMessage),
-			protocol.ErrMalformedClientMessage
+		return protocol.NewErrorResponse(protocol.ErrMalformedMessage),
+			protocol.ErrMalformedMessage
 	}
 
 	ap, err := d.pad.Lookup(req.Username)
@@ -227,7 +227,7 @@ func (d *ConiksDirectory) KeyLookup(req *protocol.KeyLookupRequest) (
 // A request without a username or with an epoch greater than the latest
 // epoch of this directory is considered malformed, and causes
 // KeyLookupInEpoch() to return a
-// message.NewErrorResponse(ErrMalformedClientMessage) tuple.
+// message.NewErrorResponse(ErrMalformedMessage) tuple.
 // If the username doesn't have an entry in the directory
 // snapshot for the indicated epoch, KeyLookupInEpoch()
 // returns a message.NewKeyLookupInEpochProof(ap=proof of absence, str,
@@ -249,8 +249,8 @@ func (d *ConiksDirectory) KeyLookupInEpoch(req *protocol.KeyLookupInEpochRequest
 	// make sure the request is well-formed
 	if len(req.Username) <= 0 ||
 		req.Epoch > d.LatestSTR().Epoch {
-		return protocol.NewErrorResponse(protocol.ErrMalformedClientMessage),
-			protocol.ErrMalformedClientMessage
+		return protocol.NewErrorResponse(protocol.ErrMalformedMessage),
+			protocol.ErrMalformedMessage
 	}
 
 	var strs []*protocol.DirSTR
@@ -283,7 +283,7 @@ func (d *ConiksDirectory) KeyLookupInEpoch(req *protocol.KeyLookupInEpochRequest
 // A request without a username, with a start epoch greater than the
 // latest epoch of this directory, or a start epoch greater than the
 // end epoch is considered malformed, and causes Monitor() to return a
-// message.NewErrorResponse(ErrMalformedClientMessage) tuple.
+// message.NewErrorResponse(ErrMalformedMessage) tuple.
 // Monitor() returns a message.NewMonitoringProof(ap, str) tuple.
 // ap is a list of proofs of inclusion, and str is a list of STRs for
 // the epoch range [startEpoch, endEpoch], where startEpoch
@@ -299,8 +299,8 @@ func (d *ConiksDirectory) Monitor(req *protocol.MonitoringRequest) (
 	if len(req.Username) <= 0 ||
 		req.StartEpoch > d.LatestSTR().Epoch ||
 		req.StartEpoch > req.EndEpoch {
-		return protocol.NewErrorResponse(protocol.ErrMalformedClientMessage),
-			protocol.ErrMalformedClientMessage
+		return protocol.NewErrorResponse(protocol.ErrMalformedMessage),
+			protocol.ErrMalformedMessage
 	}
 
 	var strs []*protocol.DirSTR
@@ -333,7 +333,7 @@ func (d *ConiksDirectory) Monitor(req *protocol.MonitoringRequest) (
 // latest epoch of this directory, or a start epoch greater than the
 // end epoch is considered malformed, and causes
 // GetSTRHistory() to return a
-// message.NewErrorResponse(ErrMalformedAuditorMessage) tuple.
+// message.NewErrorResponse(ErrMalformedMessage) tuple.
 // GetSTRHistory() returns a message.NewSTRHistoryRange(strs) tuple.
 // strs is a list of STRs for
 // the epoch range [startEpoch, endEpoch], where startEpoch
@@ -345,8 +345,8 @@ func (d *ConiksDirectory) GetSTRHistory(req *protocol.STRHistoryRequest) (*proto
 	// make sure the request is well-formed
 	if req.StartEpoch > d.LatestSTR().Epoch ||
 		req.EndEpoch < req.StartEpoch {
-		return protocol.NewErrorResponse(protocol.ErrMalformedAuditorMessage),
-			protocol.ErrMalformedAuditorMessage
+		return protocol.NewErrorResponse(protocol.ErrMalformedMessage),
+			protocol.ErrMalformedMessage
 	}
 
 	endEp := req.EndEpoch

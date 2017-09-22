@@ -79,9 +79,9 @@ func (server *ConiksServer) acceptClient(conn net.Conn, handler func(msg []byte)
 func malformedClientMsg(err error) ([]byte, error) {
 	// check if we're just propagating a message
 	if err == nil {
-		err = ErrMalformedClientMessage
+		err = ErrMalformedMessage
 	}
-	response := NewErrorResponse(ErrMalformedClientMessage)
+	response := NewErrorResponse(ErrMalformedMessage)
 	res, e := MarshalResponse(response)
 	if e != nil {
 		panic(e)
@@ -110,8 +110,8 @@ func (server *ConiksServer) handleOps(req *Request) (*Response, ErrorCode) {
 			return server.dir.Monitor(msg)
 		}
 	}
-	return NewErrorResponse(ErrMalformedClientMessage),
-		ErrMalformedClientMessage
+	return NewErrorResponse(ErrMalformedMessage),
+		ErrMalformedMessage
 }
 
 func (server *ConiksServer) makeHandler(acceptableTypes map[int]bool) func(msg []byte) ([]byte, error) {
@@ -124,7 +124,7 @@ func (server *ConiksServer) makeHandler(acceptableTypes map[int]bool) func(msg [
 		if !acceptableTypes[req.Type] {
 			server.logger.Error("Unacceptable message type",
 				"request type", req.Type)
-			return malformedClientMsg(ErrMalformedClientMessage)
+			return malformedClientMsg(ErrMalformedMessage)
 		}
 
 		switch req.Type {

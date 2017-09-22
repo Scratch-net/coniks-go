@@ -232,15 +232,15 @@ func TestGetObservedSTRMalformed(t *testing.T) {
 		DirInitSTRHash: dirInitHash,
 		StartEpoch:     uint64(6),
 		EndEpoch:       uint64(4)})
-	if err != ErrMalformedClientMessage {
-		t.Fatal("Expect ErrMalformedClientMessage for bad end epoch")
+	if err != ErrMalformedMessage {
+		t.Fatal("Expect ErrMalformedMessage for bad end epoch")
 	}
 	_, err = aud.GetObservedSTRs(&AuditingRequest{
 		DirInitSTRHash: dirInitHash,
 		StartEpoch:     uint64(6),
 		EndEpoch:       uint64(11)})
-	if err != ErrMalformedClientMessage {
-		t.Fatal("Expect ErrMalformedClientMessage for out-of-bounds epoch range")
+	if err != ErrMalformedMessage {
+		t.Fatal("Expect ErrMalformedMessage for out-of-bounds epoch range")
 	}
 }
 
