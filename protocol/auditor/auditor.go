@@ -162,5 +162,5 @@ func (a *AudState) AuditDirectory(strs []*protocol.DirSTR) error {
 		}
 	}
 
-	return protocol.CheckPassed
+	return nil
 }

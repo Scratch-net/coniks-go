@@ -266,6 +266,8 @@ func NewSTRHistoryRange(str []*DirSTR) (*Response, ErrorCode) {
 	}, ReqSuccess
 }
 
+// Validate returns immediately if the message includes an error code.
+// Otherwise, it verifies whether the message has proper format.
 func (msg *Response) Validate() error {
 	if Errors[msg.Error] {
 		return msg.Error
