@@ -144,7 +144,9 @@ func TestDirectoryMonitoring(t *testing.T) {
 	}
 
 	// missed from epoch 2
-	res, err := d.Monitor(&MonitoringRequest{"alice", uint64(2), d.LatestSTR().Epoch})
+	res, err := d.Monitor(&MonitoringRequest{
+		Username: "alice", StartEpoch: uint64(2), EndEpoch: d.LatestSTR().Epoch,
+	})
 	df := res.DirectoryResponse.(*DirectoryProof)
 	if err != ReqSuccess {
 		t.Fatal("Unable to perform key lookup in epoch", 2)
@@ -165,7 +167,9 @@ func TestDirectoryMonitoring(t *testing.T) {
 	}
 
 	// assert the number of STRs returned is correct
-	res, err = d.Monitor(&MonitoringRequest{"alice", uint64(2), d.LatestSTR().Epoch + 5})
+	res, err = d.Monitor(&MonitoringRequest{
+		Username: "alice", StartEpoch: uint64(2), EndEpoch: d.LatestSTR().Epoch + 5,
+	})
 	df = res.DirectoryResponse.(*DirectoryProof)
 	if err != ReqSuccess {
 		t.Fatal("Unable to perform key lookup in epoch", 2)
@@ -184,7 +188,7 @@ func TestDirectoryKeyLookupInEpoch(t *testing.T) {
 	}
 
 	// lookup at epoch 1, expect a proof of absence & ReqNameNotFound
-	res, err := d.KeyLookupInEpoch(&KeyLookupInEpochRequest{"alice", uint64(1)})
+	res, err := d.KeyLookupInEpoch(&KeyLookupInEpochRequest{Username: "alice", Epoch: uint64(1)})
 	df := res.DirectoryResponse.(*DirectoryProof)
 	if err != ReqNameNotFound {
 		t.Fatal("Expect error", ReqNameNotFound, "got", err)
@@ -203,7 +207,7 @@ func TestDirectoryKeyLookupInEpoch(t *testing.T) {
 		d.Update()
 	}
 
-	res, err = d.KeyLookupInEpoch(&KeyLookupInEpochRequest{"alice", uint64(5)})
+	res, err = d.KeyLookupInEpoch(&KeyLookupInEpochRequest{Username: "alice", Epoch: uint64(5)})
 	df = res.DirectoryResponse.(*DirectoryProof)
 	if err != ReqSuccess {
 		t.Fatal("Expect error", ReqSuccess, "got", err)
@@ -226,7 +230,7 @@ func TestDirectoryKeyLookupInEpochBadEpoch(t *testing.T) {
 
 	// Send an invalid KeyLookupInEpochRequest (epoch > d.LatestEpoch())
 	// Expect ErrMalformedClientMessage
-	_, err := d.KeyLookupInEpoch(&KeyLookupInEpochRequest{"alice", uint64(6)})
+	_, err := d.KeyLookupInEpoch(&KeyLookupInEpochRequest{Username: "alice", Epoch: uint64(6)})
 	if err != ErrMalformedClientMessage {
 		t.Fatal("Expect error", ErrMalformedClientMessage, "got", err)
 	}
@@ -242,14 +246,18 @@ func TestMonitoringBadStartEpoch(t *testing.T) {
 
 	// Send an invalid MonitoringRequest (startEpoch > d.LatestEpoch())
 	// Expect ErrMalformedClientMessage
-	_, err := d.Monitor(&MonitoringRequest{"alice", uint64(6), uint64(10)})
+	_, err := d.Monitor(&MonitoringRequest{
+		Username: "alice", StartEpoch: uint64(6), EndEpoch: uint64(10),
+	})
 	if err != ErrMalformedClientMessage {
 		t.Fatal("Expect error", ErrMalformedClientMessage, "got", err)
 	}
 
 	// Send an invalid MonitoringRequest (startEpoch > EndEpoch)
 	// Expect ErrMalformedClientMessage
-	_, err = d.Monitor(&MonitoringRequest{"alice", uint64(2), uint64(0)})
+	_, err = d.Monitor(&MonitoringRequest{
+		Username: "alice", StartEpoch: uint64(2), EndEpoch: uint64(0),
+	})
 	if err != ErrMalformedClientMessage {
 		t.Fatal("Expect error", ErrMalformedClientMessage, "got", err)
 	}
