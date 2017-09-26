@@ -1,0 +1,1 @@
+git pull https://github.com/coniks-sys/coniks-go.git master
