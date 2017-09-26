@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"github.com/BurntSushi/toml"
-	"github.com/coniks-sys/coniks-go/bots"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/bots"
+	"github.com/Scratch-net/coniks-go/utils"
 	"github.com/spf13/cobra"
 )
 

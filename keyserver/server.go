@@ -7,16 +7,14 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
-	"github.com/coniks-sys/coniks-go/protocol"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/protocol"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 // A ServerConfig contains configuration values
@@ -154,7 +152,7 @@ func NewConiksServer(conf *ServerConfig) *ConiksServer {
 	server.stop = make(chan struct{})
 	server.configFilePath = conf.configFilePath
 	server.reloadChan = make(chan os.Signal, 1)
-	signal.Notify(server.reloadChan, syscall.SIGUSR2)
+	//signal.Notify(server.reloadChan, syscall.SIGUSR2)
 	server.epochTimer = time.NewTimer(time.Duration(conf.Policies.EpochDeadline) * time.Second)
 
 	return server

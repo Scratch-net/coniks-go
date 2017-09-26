@@ -7,7 +7,7 @@ package keyserver
 import (
 	"encoding/json"
 
-	. "github.com/coniks-sys/coniks-go/protocol"
+	. "github.com/Scratch-net/coniks-go/protocol"
 )
 
 // MarshalResponse returns a JSON encoding of the server's response.

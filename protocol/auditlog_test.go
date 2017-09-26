@@ -1,7 +1,7 @@
 package protocol
 
 import (
-	"github.com/coniks-sys/coniks-go/crypto"
+	"github.com/Scratch-net/coniks-go/crypto"
 	"testing"
 )
 

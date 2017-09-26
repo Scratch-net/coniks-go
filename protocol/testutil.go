@@ -3,8 +3,8 @@ package protocol
 import (
 	"testing"
 
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
 )
 
 // TODO: refactor the function signature after resolving #47

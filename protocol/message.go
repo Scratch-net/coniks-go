@@ -5,8 +5,8 @@
 package protocol
 
 import (
-	"github.com/coniks-sys/coniks-go/crypto"
-	m "github.com/coniks-sys/coniks-go/merkletree"
+	"github.com/Scratch-net/coniks-go/crypto"
+	m "github.com/Scratch-net/coniks-go/merkletree"
 )
 
 // The types of requests CONIKS clients send during the CONIKS protocols.

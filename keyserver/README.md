@@ -2,7 +2,7 @@
 
 ## Usage
 ```
-⇒  go install github.com/coniks-sys/coniks-go/keyserver/coniksserver
+⇒  go install github.com/Scratch-net/coniks-go/keyserver/coniksserver
 ⇒  coniksserver -h
  _______  _______  __    _  ___  ___   _  _______
 |       ||       ||  |  | ||   ||   | | ||       |
@@ -67,4 +67,4 @@ and possibly replace `vrf.priv` with a new key, then run
 ## Disclaimer
 Please keep in mind that this CONIKS server implementation is under active
 development. The repository may contain experimental features that aren't
-fully tested. We recommend using a [tagged release](https://github.com/coniks-sys/coniks-go/releases).
+fully tested. We recommend using a [tagged release](https://github.com/Scratch-net/coniks-go/releases).

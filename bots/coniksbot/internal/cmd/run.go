@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/coniks-sys/coniks-go/bots"
+	"github.com/Scratch-net/coniks-go/bots"
 	"github.com/spf13/cobra"
 )
 

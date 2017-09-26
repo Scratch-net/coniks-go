@@ -11,9 +11,9 @@ package protocol
 import (
 	"bytes"
 
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
-	"github.com/coniks-sys/coniks-go/merkletree"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/merkletree"
 )
 
 // A ConiksDirectory maintains the underlying persistent

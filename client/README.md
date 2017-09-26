@@ -5,7 +5,7 @@ __Do not use your real public key or private key with this test client.__
 
 ##### Install the test client
 ```
-⇒  go install github.com/coniks-sys/coniks-go/client/coniksclient
+⇒  go install github.com/Scratch-net/coniks-go/client/coniksclient
 ⇒  coniksclient -h
 ________  _______  __    _  ___  ___   _  _______
 |       ||       ||  |  | ||   ||   | | ||       |
@@ -67,4 +67,4 @@ Use `exit` to close the REPL and exit the client.
 ## Disclaimer
 Please keep in mind that this CONIKS client is under active development.
 The repository may contain experimental features that aren't fully tested.
-We recommend using a [tagged release](https://github.com/coniks-sys/coniks-go/releases).
+We recommend using a [tagged release](https://github.com/Scratch-net/coniks-go/releases).

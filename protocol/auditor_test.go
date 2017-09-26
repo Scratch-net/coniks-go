@@ -3,7 +3,7 @@ package protocol
 import (
 	"testing"
 
-	"github.com/coniks-sys/coniks-go/crypto"
+	"github.com/Scratch-net/coniks-go/crypto"
 )
 
 func TestComputeDirectoryIdentity(t *testing.T) {

@@ -7,11 +7,11 @@ import (
 	"strconv"
 
 	"github.com/BurntSushi/toml"
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
-	"github.com/coniks-sys/coniks-go/keyserver"
-	"github.com/coniks-sys/coniks-go/keyserver/testutil"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/keyserver"
+	"github.com/Scratch-net/coniks-go/keyserver/testutil"
+	"github.com/Scratch-net/coniks-go/utils"
 	"github.com/spf13/cobra"
 )
 

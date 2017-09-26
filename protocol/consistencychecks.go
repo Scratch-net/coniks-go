@@ -9,8 +9,8 @@ package protocol
 import (
 	"bytes"
 
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	m "github.com/coniks-sys/coniks-go/merkletree"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	m "github.com/Scratch-net/coniks-go/merkletree"
 )
 
 // ConsistencyChecks stores the latest consistency check

@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/coniks-sys/coniks-go/client/coniksclient/internal/cmd"
+	"github.com/Scratch-net/coniks-go/client/coniksclient/internal/cmd"
 )
 
 func main() {

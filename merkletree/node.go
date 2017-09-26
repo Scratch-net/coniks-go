@@ -1,8 +1,8 @@
 package merkletree
 
 import (
-	"github.com/coniks-sys/coniks-go/crypto"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 type node struct {

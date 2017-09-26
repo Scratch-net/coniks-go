@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/BurntSushi/toml"
-	"github.com/coniks-sys/coniks-go/client"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/client"
+	"github.com/Scratch-net/coniks-go/utils"
 	"github.com/spf13/cobra"
 )
 

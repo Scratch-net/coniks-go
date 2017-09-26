@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/utils"
 	"golang.org/x/crypto/sha3"
 )
 

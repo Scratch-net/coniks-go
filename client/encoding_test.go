@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/coniks-sys/coniks-go/keyserver"
-	"github.com/coniks-sys/coniks-go/protocol"
+	"github.com/Scratch-net/coniks-go/keyserver"
+	"github.com/Scratch-net/coniks-go/protocol"
 )
 
 func TestUnmarshalErrorResponse(t *testing.T) {

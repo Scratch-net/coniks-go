@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 
 	"github.com/BurntSushi/toml"
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 // Config contains the client's configuration needed to send a request to a

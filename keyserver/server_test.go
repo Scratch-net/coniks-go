@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
-	"github.com/coniks-sys/coniks-go/keyserver/testutil"
-	. "github.com/coniks-sys/coniks-go/protocol"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/keyserver/testutil"
+	. "github.com/Scratch-net/coniks-go/protocol"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 var registrationMsg = `

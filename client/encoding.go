@@ -3,7 +3,7 @@ package client
 import (
 	"encoding/json"
 
-	p "github.com/coniks-sys/coniks-go/protocol"
+	p "github.com/Scratch-net/coniks-go/protocol"
 )
 
 // UnmarshalResponse decodes the given message into a protocol.Response

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 func TestVerifyProof(t *testing.T) {

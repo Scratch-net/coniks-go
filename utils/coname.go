@@ -18,8 +18,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/coniks-sys/coniks-go/storage/kv"
-	"github.com/coniks-sys/coniks-go/storage/kv/leveldbkv"
+	"github.com/Scratch-net/coniks-go/storage/kv"
+	"github.com/Scratch-net/coniks-go/storage/kv/leveldbkv"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

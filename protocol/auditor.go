@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/coniks-sys/coniks-go/crypto"
-	"github.com/coniks-sys/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
 )
 
 // Auditor provides a generic interface allowing different
@@ -90,7 +90,7 @@ func (a *AudState) checkSTRAgainstVerified(str *DirSTR) error {
 
 	// FIXME: we are returning the error immediately
 	// without saving the inconsistent STR
-	// see: https://github.com/coniks-sys/coniks-go/pull/74#commitcomment-19804686
+	// see: https://github.com/Scratch-net/coniks-go/pull/74#commitcomment-19804686
 	switch {
 	case str.Epoch == a.verifiedSTR.Epoch:
 		// Checking an STR in the same epoch

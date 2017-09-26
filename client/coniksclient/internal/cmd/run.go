@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/coniks-sys/coniks-go/client"
-	"github.com/coniks-sys/coniks-go/keyserver/testutil"
-	p "github.com/coniks-sys/coniks-go/protocol"
+	"github.com/Scratch-net/coniks-go/client"
+	"github.com/Scratch-net/coniks-go/keyserver/testutil"
+	p "github.com/Scratch-net/coniks-go/protocol"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )

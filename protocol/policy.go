@@ -1,10 +1,10 @@
 package protocol
 
 import (
-	"github.com/coniks-sys/coniks-go/crypto"
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
-	"github.com/coniks-sys/coniks-go/merkletree"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/merkletree"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 // Timestamp is used for defining a CONIKS server's epoch deadline.

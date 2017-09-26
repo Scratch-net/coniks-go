@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/coniks-sys/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
 )
 
 var signKey sign.PrivateKey
