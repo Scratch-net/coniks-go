@@ -93,14 +93,22 @@ func (m *MerkleTree) Get(lookupIndex []byte) *AuthenticationPath {
 	case *userLeafNode:
 		pNode := nodePointer.(*userLeafNode)
 		authPath.Leaf = &ProofNode{
-			Level:      pNode.Level,
-			Index:      pNode.Index,
-			Value:      pNode.Value,
+<<<<<<< HEAD
+			Level:   pNode.level,
+			Index:   pNode.index,
+			Value:   pNode.value,
 			IsEmpty: false,
-			Commitment: &crypto.Commit{pNode.Commitment.Salt, pNode.Commitment.Value},
+			Commitment: &crypto.Commit{
 				Salt:  pNode.commitment.Salt,
 				Value: pNode.commitment.Value,
 			},
+=======
+			Level:      pNode.Level,
+			Index:      pNode.Index,
+			Value:      pNode.Value,
+			IsEmpty:    false,
+			Commitment: &crypto.Commit{pNode.Commitment.Salt, pNode.Commitment.Value},
+>>>>>>> 21709e9e2f477daa5b48dc10bf98816f2bcfd078
 		}
 		if bytes.Equal(nodePointer.(*userLeafNode).Index, lookupIndex) {
 			return authPath

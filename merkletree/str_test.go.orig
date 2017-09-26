@@ -11,7 +11,11 @@ func TestVerifyHashChain(t *testing.T) {
 
 	keyPrefix := "key"
 	valuePrefix := []byte("value")
+<<<<<<< HEAD
+	pad, err := NewPAD(TestAd{"abc"}, signKey, vrfPrivKey1, 10)
+=======
 	pad, err := NewPAD(&MockAd{""}, signKey, vrfPrivKey1, 10)
+>>>>>>> 21709e9e2f477daa5b48dc10bf98816f2bcfd078
 	if err != nil {
 		t.Fatal(err)
 	}

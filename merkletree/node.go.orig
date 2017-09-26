@@ -1,10 +1,15 @@
 package merkletree
 
 import (
+<<<<<<< HEAD
 	"github.com/Scratch-net/coniks-go/crypto"
 	"github.com/Scratch-net/coniks-go/utils"
+=======
 	"encoding/gob"
 
+	"github.com/coniks-sys/coniks-go/crypto"
+	"github.com/coniks-sys/coniks-go/utils"
+>>>>>>> 21709e9e2f477daa5b48dc10bf98816f2bcfd078
 )
 
 type node struct {
