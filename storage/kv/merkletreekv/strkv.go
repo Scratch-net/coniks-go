@@ -3,9 +3,9 @@ package merkletreekv
 import (
 	"bytes"
 
-	"github.com/coniks-sys/coniks-go/merkletree"
-	"github.com/coniks-sys/coniks-go/storage/kv"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/merkletree"
+	"github.com/Scratch-net/coniks-go/storage/kv"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 // StoreSTR stores str into the db under the key

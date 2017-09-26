@@ -7,8 +7,8 @@ import (
 =======
 	"encoding/gob"
 
-	"github.com/coniks-sys/coniks-go/crypto"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto"
+	"github.com/Scratch-net/coniks-go/utils"
 >>>>>>> 21709e9e2f477daa5b48dc10bf98816f2bcfd078
 )
 

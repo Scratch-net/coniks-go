@@ -3,11 +3,11 @@ package merkletreekv
 import (
 	"testing"
 
-	"github.com/coniks-sys/coniks-go/crypto/sign"
-	"github.com/coniks-sys/coniks-go/crypto/vrf"
-	"github.com/coniks-sys/coniks-go/merkletree"
-	"github.com/coniks-sys/coniks-go/storage/kv"
-	"github.com/coniks-sys/coniks-go/utils"
+	"github.com/Scratch-net/coniks-go/crypto/sign"
+	"github.com/Scratch-net/coniks-go/crypto/vrf"
+	"github.com/Scratch-net/coniks-go/merkletree"
+	"github.com/Scratch-net/coniks-go/storage/kv"
+	"github.com/Scratch-net/coniks-go/utils"
 )
 
 func TestPADStoreLoad(t *testing.T) {
