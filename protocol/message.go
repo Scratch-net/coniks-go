@@ -140,7 +140,7 @@ type DirectoryResponse interface{}
 // signed tree roots STR for a range of epochs, and optionally
 // a temporary binding for the given binding for a single epoch.
 type DirectoryProof struct {
-	AP  []*m.AuthenticationPath
+	AP  []*merkletree.AuthenticationPath
 	STR []*DirSTR
 	TB  *TemporaryBinding `json:",omitempty"`
 }
@@ -175,16 +175,16 @@ var _ DirectoryResponse = (*STRHistoryRange)(nil)
 //
 // See directory.Register() for details on the contents of the created
 // DirectoryProof.
-func NewRegistrationProof(ap *m.AuthenticationPath, str *DirSTR,
-	tb *TemporaryBinding, e ErrorCode) (*Response, ErrorCode) {
+func NewRegistrationProof(ap *merkletree.AuthenticationPath, str *DirSTR,
+	tb *TemporaryBinding, e ErrorCode) *Response {
 	return &Response{
 		Error: e,
 		DirectoryResponse: &DirectoryProof{
-			AP:  append([]*m.AuthenticationPath{}, ap),
+			AP:  append([]*merkletree.AuthenticationPath{}, ap),
 			STR: append([]*DirSTR{}, str),
 			TB:  tb,
 		},
-	}, e
+	}
 }
 
 // NewKeyLookupProof creates the response message a CONIKS directory
@@ -197,16 +197,16 @@ func NewRegistrationProof(ap *m.AuthenticationPath, str *DirSTR,
 //
 // See directory.KeyLookup() for details on the contents of the created
 // DirectoryProof.
-func NewKeyLookupProof(ap *m.AuthenticationPath, str *DirSTR,
-	tb *TemporaryBinding, e ErrorCode) (*Response, ErrorCode) {
+func NewKeyLookupProof(ap *merkletree.AuthenticationPath, str *DirSTR,
+	tb *TemporaryBinding, e ErrorCode) *Response {
 	return &Response{
 		Error: e,
 		DirectoryResponse: &DirectoryProof{
-			AP:  append([]*m.AuthenticationPath{}, ap),
+			AP:  append([]*merkletree.AuthenticationPath{}, ap),
 			STR: append([]*DirSTR{}, str),
 			TB:  tb,
 		},
-	}, e
+	}
 }
 
 // NewKeyLookupInEpochProof creates the response message a CONIKS directory
@@ -218,16 +218,16 @@ func NewKeyLookupProof(ap *m.AuthenticationPath, str *DirSTR,
 //
 // See directory.KeyLookupInEpoch() for details on the contents of the
 // created DirectoryProofs.
-func NewKeyLookupInEpochProof(ap *m.AuthenticationPath,
-	str []*DirSTR, e ErrorCode) (*Response, ErrorCode) {
-	aps := append([]*m.AuthenticationPath{}, ap)
+func NewKeyLookupInEpochProof(ap *merkletree.AuthenticationPath,
+	str []*DirSTR, e ErrorCode) *Response {
+	aps := append([]*merkletree.AuthenticationPath{}, ap)
 	return &Response{
 		Error: e,
 		DirectoryResponse: &DirectoryProof{
 			AP:  aps,
 			STR: str,
 		},
-	}, e
+	}
 }
 
 // NewMonitoringProof creates the response message a CONIKS directory
@@ -238,15 +238,15 @@ func NewKeyLookupInEpochProof(ap *m.AuthenticationPath,
 //
 // See directory.Monitor() for details on the contents of the created
 // DirectoryProofs.
-func NewMonitoringProof(ap []*m.AuthenticationPath,
-	str []*DirSTR) (*Response, ErrorCode) {
+func NewMonitoringProof(ap []*merkletree.AuthenticationPath,
+	str []*DirSTR) *Response {
 	return &Response{
 		Error: ReqSuccess,
 		DirectoryResponse: &DirectoryProof{
 			AP:  ap,
 			STR: str,
 		},
-	}, ReqSuccess
+	}
 }
 
 // NewSTRHistoryRange creates the response message a CONIKS auditor
@@ -257,28 +257,30 @@ func NewMonitoringProof(ap []*m.AuthenticationPath,
 //
 // See auditlog.GetObservedSTRs() for details on the contents of the created
 // STRHistoryRange.
-func NewSTRHistoryRange(str []*DirSTR) (*Response, ErrorCode) {
+func NewSTRHistoryRange(str []*DirSTR) *Response {
 	return &Response{
 		Error: ReqSuccess,
 		DirectoryResponse: &STRHistoryRange{
 			STR: str,
 		},
-	}, ReqSuccess
+	}
 }
 
-func (msg *Response) validate() error {
+// Validate returns immediately if the message includes an error code.
+// Otherwise, it verifies whether the message has proper format.
+func (msg *Response) Validate() error {
 	if Errors[msg.Error] {
 		return msg.Error
 	}
 	switch df := msg.DirectoryResponse.(type) {
 	case *DirectoryProof:
 		if len(df.STR) == 0 || len(df.AP) == 0 {
-			return ErrMalformedDirectoryMessage
+			return ErrMalformedMessage
 		}
 		return nil
 	case *STRHistoryRange:
 		if len(df.STR) == 0 {
-			return ErrMalformedAuditorMessage
+			return ErrMalformedMessage
 		}
 		return nil
 	default:
