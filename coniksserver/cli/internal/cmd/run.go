@@ -8,7 +8,7 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/Scratch-net/coniks-go/keyserver"
+	"github.com/Scratch-net/coniks-go/coniksserver"
 	"github.com/spf13/cobra"
 )
 

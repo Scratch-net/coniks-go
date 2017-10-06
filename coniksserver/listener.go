@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	. "github.com/Scratch-net/coniks-go/protocol"
+	"github.com/Scratch-net/coniks-go/protocol"
 )
 
 func (server *ConiksServer) handleRequests(ln net.Listener, tlsConfig *tls.Config,

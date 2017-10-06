@@ -14,6 +14,7 @@ import (
 	"github.com/Scratch-net/coniks-go/crypto/sign"
 	"github.com/Scratch-net/coniks-go/crypto/vrf"
 	"github.com/Scratch-net/coniks-go/protocol"
+	"github.com/Scratch-net/coniks-go/protocol/directory"
 	"github.com/Scratch-net/coniks-go/utils"
 )
 

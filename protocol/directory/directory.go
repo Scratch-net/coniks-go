@@ -11,11 +11,13 @@ package directory
 import (
 	"bytes"
 
+	"encoding/json"
+	"fmt"
+
 	"github.com/Scratch-net/coniks-go/crypto/sign"
 	"github.com/Scratch-net/coniks-go/crypto/vrf"
 	"github.com/Scratch-net/coniks-go/merkletree"
-	"fmt"
-	"encoding/json"
+	"github.com/Scratch-net/coniks-go/protocol"
 )
 
 // A ConiksDirectory maintains the underlying persistent
@@ -62,7 +64,7 @@ func New(epDeadline protocol.Timestamp, vrfKey vrf.PrivateKey,
 		d.tbs = make(map[string]*protocol.TemporaryBinding)
 	}
 	b, _ := json.Marshal(d.LatestSTR())
-	fmt.Printf("%s\n",b)
+	fmt.Printf("%s\n", b)
 	return d
 }
 

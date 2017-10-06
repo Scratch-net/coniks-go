@@ -2,7 +2,7 @@
 // usage instructions.
 package main
 
-import "github.com/Scratch-net/coniks-go/keyserver/coniksserver/internal/cmd"
+import "github.com/Scratch-net/coniks-go/coniksserver/cli/internal/cmd"
 
 func main() {
 	cmd.Execute()
