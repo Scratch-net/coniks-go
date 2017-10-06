@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"path"
-	"syscall"
 	"testing"
 	"time"
 
@@ -133,7 +132,7 @@ func TestResolveAddresses(t *testing.T) {
 func TestServerReloadPoliciesWithError(t *testing.T) {
 	server, teardown := startServer(t, 1, true, "")
 	defer teardown()
-	syscall.Kill(syscall.Getpid(), syscall.SIGUSR2)
+	//syscall.Kill(syscall.Getpid(), syscall.SIGUSR2)
 	if server.dir.EpochDeadline() != 1 {
 		t.Fatal("Expect the server's policies not change")
 	}

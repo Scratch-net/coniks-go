@@ -14,7 +14,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/json"
@@ -134,7 +133,7 @@ func CreateTLSCertForTest(t *testing.T) (string, func()) {
 // request msg to the server listening at the given address
 // via a TCP connection.
 func NewTCPClient(msg []byte, address string) ([]byte, error) {
-	conf := &tls.Config{InsecureSkipVerify: true}
+	//conf := &tls.Config{InsecureSkipVerify: true}
 	u, _ := url.Parse(address)
 	conn, err := net.Dial(u.Scheme, u.Host)
 	if err != nil {
@@ -142,9 +141,9 @@ func NewTCPClient(msg []byte, address string) ([]byte, error) {
 	}
 	defer conn.Close()
 
-	tlsConn := tls.Client(conn, conf)
+	//tlsConn := tls.Client(conn, conf)
 
-	_, err = tlsConn.Write([]byte(msg))
+	_, err = conn.Write([]byte(msg))
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +155,7 @@ func NewTCPClient(msg []byte, address string) ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	if _, err := io.CopyN(&buf, tlsConn, 8192); err != nil && err != io.EOF {
+	if _, err := io.CopyN(&buf, conn, 8192); err != nil && err != io.EOF {
 		return nil, err
 	}
 

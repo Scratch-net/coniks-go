@@ -250,11 +250,11 @@ func resolveAndListen(addr *Address) (ln net.Listener,
 	switch u.Scheme {
 	case "tcp":
 		// force to use TLS
-		cer, err := tls.LoadX509KeyPair(addr.TLSCertPath, addr.TLSKeyPath)
+		/*cer, err := tls.LoadX509KeyPair(addr.TLSCertPath, addr.TLSKeyPath)
 		if err != nil {
 			panic(err)
 		}
-		tlsConfig = &tls.Config{Certificates: []tls.Certificate{cer}}
+		tlsConfig = &tls.Config{Certificates: []tls.Certificate{cer}}*/
 		tcpaddr, err := net.ResolveTCPAddr(u.Scheme, u.Host)
 		if err != nil {
 			panic(err)

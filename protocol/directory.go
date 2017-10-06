@@ -14,6 +14,8 @@ import (
 	"github.com/Scratch-net/coniks-go/crypto/sign"
 	"github.com/Scratch-net/coniks-go/crypto/vrf"
 	"github.com/Scratch-net/coniks-go/merkletree"
+	"fmt"
+	"encoding/json"
 )
 
 // A ConiksDirectory maintains the underlying persistent
@@ -59,6 +61,8 @@ func NewDirectory(epDeadline Timestamp, vrfKey vrf.PrivateKey,
 	if useTBs {
 		d.tbs = make(map[string]*TemporaryBinding)
 	}
+	b, _ := json.Marshal(d.LatestSTR())
+	fmt.Printf("%s\n",b)
 	return d
 }
 

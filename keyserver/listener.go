@@ -37,9 +37,9 @@ func (server *ConiksServer) handleRequests(ln net.Listener, tlsConfig *tls.Confi
 			server.logger.Error(err.Error())
 			continue
 		}
-		if _, ok := ln.(*net.TCPListener); ok {
+		/*if _, ok := ln.(*net.TCPListener); ok {
 			conn = tls.Server(conn, tlsConfig)
-		}
+		}*/
 		server.waitCloseConn.Add(1)
 		go func() {
 			server.acceptClient(conn, handler)

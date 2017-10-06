@@ -3,15 +3,15 @@ package cmd
 import (
 	"log"
 	"net/url"
-	"os"
-	"strconv"
-	"strings"
+
+	"fmt"
+
+	"encoding/json"
 
 	"github.com/Scratch-net/coniks-go/client"
 	"github.com/Scratch-net/coniks-go/keyserver/testutil"
 	p "github.com/Scratch-net/coniks-go/protocol"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 const help = "- register [name] [key]:\r\n" +
@@ -44,11 +44,23 @@ func init() {
 }
 
 func run(cmd *cobra.Command) {
-	isDebugging, _ := strconv.ParseBool(cmd.Flag("debug").Value.String())
+	//isDebugging, _ := strconv.ParseBool(cmd.Flag("debug").Value.String())
 	conf := loadConfigOrExit(cmd)
-	cc := p.NewCC(nil, true, conf.SigningPubKey)
 
-	state, err := terminal.MakeRaw(int(os.Stdin.Fd()))
+	str := `{"TreeHash":"G574Y+Zb2+XcmC8ogo9eWK4e6N+4i9Fx9ECijvIC7e0=","Epoch":0,"PreviousEpoch":0,"PreviousSTRHash":"UUQlT6tO9eQwrQEmyqjTL7kSYaP4eLVAscFCk8mXRj8=","Signature":"tuv4FCnwHS8IIEnLp6hGJwyfXPJ21l5Sf0jGe9F9EV4ZXnB+5uixFT7QWmIPYKM/GTJ0G4+OmovUpaNe4g/sCg==","Policies":{"Version":"0.3","HashID":"SHAKE128","VrfPublicKey":"CF9P10dcML0UzOX0gj+vF21YwRBD2prlHjSXTQWxS6w=","EpochDeadline":60}}`
+	var initialStr *p.DirSTR
+
+	err := json.Unmarshal([]byte(str), &initialStr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cc := p.NewCC(initialStr, true, conf.SigningPubKey)
+
+	msg := register(cc, conf, "alice", "superkey")
+	fmt.Println(msg)
+	/*state, err := terminal.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,7 +118,7 @@ func run(cmd *cobra.Command) {
 		default:
 			writeLineInRawMode(term, "[!] Unrecognized command: "+cmd, isDebugging)
 		}
-	}
+	}*/
 }
 
 func register(cc *p.ConsistencyChecks, conf *client.Config, name string, key string) string {
